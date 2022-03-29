@@ -1,10 +1,10 @@
 
-// const buttonEl = document.getElementById('btn');
+const buttonEl = document.getElementById('btn');
 
 let oldId;
 
 
-// buttonEl.addEventListener('click', highlight);
+buttonEl.addEventListener('click', highlight);
 
 
 function generateId() {
@@ -15,6 +15,30 @@ function generateId() {
         id += chars[idx];
     }
     return id;
+}
+
+function nodeTreePosition(node, idx=0) {
+    console.log(node);
+    const posArr = [];
+    const previousSibling = node.previousElementSibling;
+    if (previousSibling) {
+        if (previousSibling.id) {
+            posArr.push(idx, previousSibling.id);
+            return posArr;
+        }
+        posArr.push(...nodeTreePosition(previousSibling, idx+1));
+        return posArr;
+    }
+    posArr.push(idx);
+    const parent = node.parentNode;
+    if (parent.nodeType != 9) {
+        posArr.push(...nodeTreePosition(parent));
+    }
+    return posArr;
+}
+
+function nodeFromPosition(posArr) {
+    document.documentElement;
 }
 
 function highlight() {
@@ -61,6 +85,7 @@ function highlight() {
             oldSpan.outerHTML = oldSpan.innerHTML;
         }
     }
+    console.log(nodeTreePosition(span));
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
     selection.removeAllRanges();
