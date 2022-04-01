@@ -17,28 +17,49 @@ function generateId() {
     return id;
 }
 
-function nodeTreePosition(node, idx=0) {
-    console.log(node);
-    const posArr = [];
-    const previousSibling = node.previousElementSibling;
-    if (previousSibling) {
-        if (previousSibling.id) {
-            posArr.push(idx, previousSibling.id);
+function getNodeTreePosition(node) {
+    const nodeTreeRecurse = (node, idx=0) => {
+        console.log(node);
+        const posArr = [];
+        if (node.id && idx >= 0) {
+            posArr.push(idx, node.id);
             return posArr;
         }
-        posArr.push(...nodeTreePosition(previousSibling, idx+1));
+
+        const previousSibling = node.previousElementSibling;
+        if (previousSibling) {
+            posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
+            return posArr;
+        }
+        posArr.push(idx < 0 ? 0 : idx);
+        const parent = node.parentNode;
+        if (parent.nodeType != 9) {
+            posArr.push(...nodeTreeRecurse(parent));
+        }
         return posArr;
     }
-    posArr.push(idx);
-    const parent = node.parentNode;
-    if (parent.nodeType != 9) {
-        posArr.push(...nodeTreePosition(parent));
-    }
-    return posArr;
+
+    return nodeTreeRecurse(node, -1).reverse();
 }
 
 function nodeFromPosition(posArr) {
-    document.documentElement;
+    let nodeRes;
+    if (typeof posArr[0] === 'string') {
+        nodeRes = document.getElementById(posArr[0]);
+    } else {
+        nodeRes = document.documentElement;
+    }
+
+    posArr.slice(1).forEach((sibling, idx) => {
+        for (let i = 0; i < sibling; i++) {
+            nodeRes = nodeRes.nextElementSibling;
+        }
+        if (idx + 2 < posArr.length) {
+            nodeRes = nodeRes.childNodes[0];
+        }
+    });
+
+    return nodeRes;
 }
 
 function highlight() {
@@ -85,7 +106,10 @@ function highlight() {
             oldSpan.outerHTML = oldSpan.innerHTML;
         }
     }
-    console.log(nodeTreePosition(span));
+    let treePos = getNodeTreePosition(span);
+    console.log(treePos);
+    let reacquireNode = nodeFromPosition(treePos);
+    console.log(reacquireNode);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
     selection.removeAllRanges();
