@@ -27,13 +27,13 @@ function getNodeTreePosition(node) {
             return posArr;
         }
 
-        const previousSibling = node.previousElementSibling;
+        const previousSibling = node.previousSibling;
         if (previousSibling) {
             posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
             return posArr;
         }
         // posArr.push(idx < 0 ? 0 : idx);
-        if (idx > 0) posArr.push(idx);
+        if (idx >= 0) posArr.push(idx);
         const parent = node.parentNode;
         if (parent.nodeName != 'BODY') {
             posArr.push(...nodeTreeRecurse(parent));
@@ -54,7 +54,7 @@ function nodeFromPosition(posArr) {
 
     posArr.slice(1).forEach((sibling, idx) => {
         for (let i = 0; i < sibling; i++) {
-            nodeRes = nodeRes.nextElementSibling;
+            nodeRes = nodeRes.nextSibling;
         }
         if (idx + 2 < posArr.length) {
             nodeRes = nodeRes.childNodes[0];
@@ -63,6 +63,52 @@ function nodeFromPosition(posArr) {
 
     return nodeRes;
 }
+// function getNodeTreePosition(node) {
+//     const nodeTreeRecurse = (node, idx=0) => {
+//         // console.log(node);
+//         const posArr = [];
+//         if (node.id && idx >= 0) {
+//             if (idx > 0) posArr.push(idx);
+//             posArr.push(node.id);
+//             return posArr;
+//         }
+
+//         const previousSibling = node.previousElementSibling;
+//         if (previousSibling) {
+//             posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
+//             return posArr;
+//         }
+//         // posArr.push(idx < 0 ? 0 : idx);
+//         if (idx > 0) posArr.push(idx);
+//         const parent = node.parentNode;
+//         if (parent.nodeName != 'BODY') {
+//             posArr.push(...nodeTreeRecurse(parent));
+//         }
+//         return posArr;
+//     }
+
+//     return nodeTreeRecurse(node, -1).reverse();
+// }
+
+// function nodeFromPosition(posArr) {
+//     let nodeRes;
+//     if (typeof posArr[0] === 'string') {
+//         nodeRes = document.getElementById(posArr[0]);
+//     } else {
+//         nodeRes = document.body.firstElementChild;
+//     }
+
+//     posArr.slice(1).forEach((sibling, idx) => {
+//         for (let i = 0; i < sibling; i++) {
+//             nodeRes = nodeRes.nextElementSibling;
+//         }
+//         if (idx + 2 < posArr.length) {
+//             nodeRes = nodeRes.childNodes[0];
+//         }
+//     });
+
+//     return nodeRes;
+// }
 
 function highlight() {
     const selection = window.getSelection();
@@ -97,7 +143,7 @@ function highlight() {
     span.appendChild(range.extractContents());
     range.insertNode(span);
     
-    console.log(selection);
+    console.log(range);
     if (oldId) {
         let oldSpan = document.getElementById(oldId);
         oldSpan.outerHTML = oldSpan.innerHTML;
@@ -109,10 +155,14 @@ function highlight() {
         }
     }
     let treePos = getNodeTreePosition(span);
-    console.log(treePos);
+    console.log(treePos.toString());
     let reacquireNode = nodeFromPosition(treePos);
     console.log(reacquireNode);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
     selection.removeAllRanges();
+}
+
+function spanFromTreePos(treePos) {
+    
 }
