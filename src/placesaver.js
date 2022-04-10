@@ -19,10 +19,11 @@ function generateId() {
 
 function getNodeTreePosition(node) {
     const nodeTreeRecurse = (node, idx=0) => {
-        console.log(node);
+        // console.log(node);
         const posArr = [];
         if (node.id && idx >= 0) {
-            posArr.push(idx, node.id);
+            if (idx > 0) posArr.push(idx);
+            posArr.push(node.id);
             return posArr;
         }
 
@@ -31,9 +32,10 @@ function getNodeTreePosition(node) {
             posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
             return posArr;
         }
-        posArr.push(idx < 0 ? 0 : idx);
+        // posArr.push(idx < 0 ? 0 : idx);
+        if (idx > 0) posArr.push(idx);
         const parent = node.parentNode;
-        if (parent.nodeType != 9) {
+        if (parent.nodeName != 'BODY') {
             posArr.push(...nodeTreeRecurse(parent));
         }
         return posArr;
@@ -47,7 +49,7 @@ function nodeFromPosition(posArr) {
     if (typeof posArr[0] === 'string') {
         nodeRes = document.getElementById(posArr[0]);
     } else {
-        nodeRes = document.documentElement;
+        nodeRes = document.body.firstElementChild;
     }
 
     posArr.slice(1).forEach((sibling, idx) => {
