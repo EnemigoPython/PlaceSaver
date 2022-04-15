@@ -101,7 +101,7 @@ function highlightFromSelection() {
 }
 
 function createHighlightedSpan(range) {
-    const rangeVals = [range.startOffset, range.toString().length];
+    const rangeVals = [range.startOffset, range.toString().length + range.startOffset];
     console.log(rangeVals);
     console.log(range);
     const span = document.createElement("span");
@@ -112,16 +112,7 @@ function createHighlightedSpan(range) {
     span.appendChild(range.extractContents());
 
     range.insertNode(span);
-    if (oldId) {
-        let oldSpan = document.getElementById(oldId);
-        oldSpan.outerHTML = oldSpan.innerHTML;
-        // when the old and new span overlap, a new tag is created at the intersection and so
-        // the span lives on parasitically. By checking twice, we eliminate this case.
-        oldSpan = document.getElementById(oldId);
-        if (oldSpan) {
-            oldSpan.outerHTML = oldSpan.innerHTML;
-        }
-    }
+    removeOldSpan();
     const treePos = getNodeTreePosition(span);
     console.log(treePos);
     const selectionObj = {
@@ -134,78 +125,33 @@ function createHighlightedSpan(range) {
     localStorage.pastId = JSON.stringify(treePos);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
-    selection.removeAllRanges();
 }
-
-// function highlight() {
-//     const selection = window.getSelection();
-//     if (!selection) return;
-
-//     // a span can't wrap multiple lines, so we need to find the first newline to set
-//     // the selection extent to.
-//     const spanFragments = selection.toString().split(/\n|\s{2}/);
-//     let spanOffset;
-//     if (spanFragments.length > 1) {
-//         if (selection.focusNode.compareDocumentPosition(selection.anchorNode) & 
-//         Node.DOCUMENT_POSITION_PRECEDING) {
-//             spanOffset = selection.anchorOffset + spanFragments[0].length;
-//         } else {
-//             const idx = spanFragments.length - 1;
-//             spanOffset = selection.anchorOffset - spanFragments[idx].length;
-//         }
-//         selection.setBaseAndExtent(
-//             selection.anchorNode, 
-//             selection.anchorOffset, 
-//             selection.anchorNode, 
-//             spanOffset
-//         );
-//     }
-
-//     const range = selection.getRangeAt(0);
-//     const rangeVals = [range.startOffset, range.toString().length];
-//     console.log(rangeVals);
-//     console.log(range);
-//     const span = document.createElement("span");
-
-//     const id = generateId();
-//     span.setAttribute("id", id);
-//     span.setAttribute("class", "placeSaverHighlight");
-//     span.appendChild(range.extractContents());
-
-//     range.insertNode(span);
-//     if (oldId) {
-//         let oldSpan = document.getElementById(oldId);
-//         oldSpan.outerHTML = oldSpan.innerHTML;
-//         // when the old and new span overlap, a new tag is created at the intersection and so
-//         // the span lives on parasitically. By checking twice, we eliminate this case.
-//         oldSpan = document.getElementById(oldId);
-//         if (oldSpan) {
-//             oldSpan.outerHTML = oldSpan.innerHTML;
-//         }
-//     }
-//     const treePos = getNodeTreePosition(span);
-//     console.log(treePos);
-//     const selectionObj = {
-
-//     }
-//     const lastPos = JSON.parse(localStorage.getItem("pastId"))
-//     if (lastPos) console.log(nodeFromPosition(lastPos));
-//     // const reacquireNode = nodeFromPosition(treePos);
-//     // console.log(reacquireNode);
-//     localStorage.pastId = JSON.stringify(treePos);
-//     span.scrollIntoView({behavior: "smooth"});
-//     oldId = id;
-//     selection.removeAllRanges();
-// }
 
 function spanFromTreePos(treePos) {
-
+    removeOldSpan();
+    const range = nodeFromPosition(treePos);
+    createHighlightedSpan(range);
 }
+
+function removeOldSpan() {
+    if (oldId) {
+        let oldSpan = document.getElementById(oldId);
+        oldSpan.outerHTML = oldSpan.innerHTML;
+        // when the old and new span overlap, a new tag is created at the intersection and so
+        // the span lives on parasitically. By checking twice, we eliminate this case.
+        oldSpan = document.getElementById(oldId);
+        if (oldSpan) {
+            oldSpan.outerHTML = oldSpan.innerHTML;
+        }
+    }
+}
+
+
 
 const thisRange = document.createRange();
 const testEl = nodeFromPosition(['btn', 6, 0]);
 // console.log(testEl);
-thisRange.setStart(testEl, 124);
-thisRange.setEnd(testEl, 185);
+thisRange.setStart(testEl, 16);
+thisRange.setEnd(testEl, 81);
 console.log(thisRange);
-
+createHighlightedSpan(thisRange);
