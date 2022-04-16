@@ -159,10 +159,17 @@ function removeOldSpan() {
 
 
 
-const thisRange = document.createRange();
-const testEl = nodeFromPosition(['btn', 6, 0]);
-// console.log(testEl);
-thisRange.setStart(testEl, 16);
-thisRange.setEnd(testEl, 81);
-console.log(thisRange);
-createHighlightedSpan(thisRange);
+// const testEl = nodeFromPosition(['btn', 6, 0]);
+// // console.log(testEl);
+const storedTreeObj = localStorage.getItem("treeObj");
+if (storedTreeObj) {
+    const lastTreeObj = JSON.parse(storedTreeObj);
+    const lastNode = nodeFromPosition(lastTreeObj['treePos']);
+    const rangeVals = lastTreeObj['rangeVals'];
+    const thisRange = document.createRange();
+    thisRange.setStart(lastNode, rangeVals[0]);
+    thisRange.setEnd(lastNode, rangeVals[1]);
+    // console.log(thisRange);
+    
+    createHighlightedSpan(thisRange);
+}
