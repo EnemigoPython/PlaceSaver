@@ -48,6 +48,36 @@ function getNodeTreePosition(node) {
     return nodeTreeRecurse(node, -1).reverse();
 }
 
+function _getNodeTreePosition(node) {
+    const nodeTreeRecurse = (node, idx=0) => {
+        console.log(node, idx);
+        const posArr = [];
+        // we find an ID to hook onto, and it isn't the span we created
+        if (node.id) {
+            posArr.push(idx, node.id);
+            return posArr;
+        }
+
+        const previousSibling = node.previousSibling;
+        if (previousSibling) {
+           
+            posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
+            return posArr;
+        }
+        // posArr.push(idx < 0 ? 0 : idx);
+        posArr.push(idx); 
+        const parent = node.parentNode;
+        // we will stop zooming out if we hit the body, else continue searching
+        if (parent.nodeName !== 'BODY') {
+            posArr.push(...nodeTreeRecurse(parent));
+        }
+        // we hit the body without finding an ID, so end at the body
+        return posArr;
+    }
+
+    return nodeTreeRecurse(node).reverse();
+}
+
 function nodeFromPosition(posArr) {
     let nodeRes;
     // if the first element is a string, it's an ID
@@ -102,7 +132,12 @@ function highlightFromSelection() {
 }
 
 function createHighlightedSpan(range) {
-    // console.log(range);
+    const rangeVals = {
+        rangeIndices: [range.startOffset, range.endOffset], 
+        startNode: range.startContainer, 
+        endNode: range.endContainer
+    }
+    // console.log(range, range.startOffset, range.endOffset, range.endContainer);
     let span = document.createElement("span");
 
     const id = generateId();
@@ -116,7 +151,7 @@ function createHighlightedSpan(range) {
     // the span we had before is cached and the node still believes the old span exists
     // (not good!) Get the span again to change it's mind
     span = document.getElementById(id);
-    saveSpan(span);
+    // saveSpan(span);
    
     // const lastPos = JSON.parse(localStorage.getItem("pastId"))
     // if (lastPos) console.log(nodeFromPosition(lastPos));
@@ -125,6 +160,7 @@ function createHighlightedSpan(range) {
     // localStorage.pastId = JSON.stringify(treePos);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
+    saveRange(rangeVals);
 }
 
 function spanFromTreePos(treePos) {
@@ -140,6 +176,24 @@ function saveSpan(span) {
     const rangeEnd = rangeStart + span.textContent.length;
     // console.log(rangeStart, rangeEnd);
     const treeObj = { treePos, rangeVals: [rangeStart, rangeEnd] };
+    localStorage.treeObj = JSON.stringify(treeObj);
+    console.log(JSON.stringify(treeObj));
+}
+
+function saveRange(rangeVals) {
+    console.log(rangeVals);
+    const rangeIndices = rangeVals.rangeIndices;
+    const startPos = _getNodeTreePosition(rangeVals.startNode);
+    let endPos;
+    if (rangeVals.startNode === rangeVals.endNode) {
+        endPos = startPos;
+    } else {
+        endPos = _getNodeTreePosition(rangeVals.endNode);
+    }
+    console.log(startPos, endPos);
+
+    // console.log(rangeStart, rangeEnd);
+    const treeObj = { startPos, endPos, rangeIndices };
     localStorage.treeObj = JSON.stringify(treeObj);
     console.log(JSON.stringify(treeObj));
 }
@@ -164,11 +218,12 @@ function removeOldSpan() {
 const storedTreeObj = localStorage.getItem("treeObj");
 if (storedTreeObj) {
     const lastTreeObj = JSON.parse(storedTreeObj);
-    const lastNode = nodeFromPosition(lastTreeObj['treePos']);
-    const rangeVals = lastTreeObj['rangeVals'];
+    const startNode = nodeFromPosition(lastTreeObj['startPos']);
+    const endNode = nodeFromPosition(lastTreeObj['endPos']);
+    const rangeVals = lastTreeObj['rangeIndices'];
     const thisRange = document.createRange();
-    thisRange.setStart(lastNode, rangeVals[0]);
-    thisRange.setEnd(lastNode, rangeVals[1]);
+    thisRange.setStart(startNode, rangeVals[0]);
+    thisRange.setEnd(endNode, rangeVals[1]);
     // console.log(thisRange);
     
     createHighlightedSpan(thisRange);
