@@ -101,8 +101,6 @@ function highlightFromSelection() {
 }
 
 function createHighlightedSpan(range) {
-    const rangeVals = [range.startOffset, range.toString().length + range.startOffset];
-    console.log(rangeVals);
     console.log(range);
     const span = document.createElement("span");
 
@@ -113,16 +111,15 @@ function createHighlightedSpan(range) {
 
     range.insertNode(span);
     removeOldSpan();
-    const treePos = getNodeTreePosition(span);
-    console.log(treePos);
-    const selectionObj = {
-
-    }
-    const lastPos = JSON.parse(localStorage.getItem("pastId"))
-    if (lastPos) console.log(nodeFromPosition(lastPos));
+    // const treePos = getNodeTreePosition(span);
+    // console.log(treePos);
+    saveSpan(span);
+   
+    // const lastPos = JSON.parse(localStorage.getItem("pastId"))
+    // if (lastPos) console.log(nodeFromPosition(lastPos));
     // const reacquireNode = nodeFromPosition(treePos);
     // console.log(reacquireNode);
-    localStorage.pastId = JSON.stringify(treePos);
+    // localStorage.pastId = JSON.stringify(treePos);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
 }
@@ -131,6 +128,16 @@ function spanFromTreePos(treePos) {
     removeOldSpan();
     const range = nodeFromPosition(treePos);
     createHighlightedSpan(range);
+}
+
+function saveSpan(span) {
+    const treePos = getNodeTreePosition(span);
+    const rangeStart = span.previousSibling.length || 0;
+    const rangeEnd = rangeStart + span.textContent.length;
+    console.log(rangeStart, rangeEnd);
+    const treeObj = { treePos, rangeVals: [rangeStart, rangeEnd] };
+    localStorage.treeObj = JSON.stringify(treeObj);
+    console.log(JSON.stringify(treeObj));
 }
 
 function removeOldSpan() {
