@@ -19,7 +19,7 @@ function generateId() {
 
 function getNodeTreePosition(node) {
     const nodeTreeRecurse = (node, idx=0) => {
-        // console.log(node);
+        // console.log(node, idx);
         const posArr = [];
         // we find an ID to hook onto, and it isn't the span we created
         if (node.id && idx >= 0) {
@@ -80,6 +80,7 @@ function highlightFromSelection() {
     const spanFragments = selection.toString().split(/\n|\s{2}/);
     let spanOffset;
     if (spanFragments.length > 1) {
+        // check if the user dragged up or down the page; get the first fragment in each case
         if (selection.focusNode.compareDocumentPosition(selection.anchorNode) & 
         Node.DOCUMENT_POSITION_PRECEDING) {
             spanOffset = selection.anchorOffset + spanFragments[0].length;
@@ -101,8 +102,8 @@ function highlightFromSelection() {
 }
 
 function createHighlightedSpan(range) {
-    console.log(range);
-    const span = document.createElement("span");
+    // console.log(range);
+    let span = document.createElement("span");
 
     const id = generateId();
     span.setAttribute("id", id);
@@ -111,8 +112,10 @@ function createHighlightedSpan(range) {
 
     range.insertNode(span);
     removeOldSpan();
-    // const treePos = getNodeTreePosition(span);
-    // console.log(treePos);
+
+    // the span we had before is cached and the node still believes the old span exists
+    // (not good!) Get the span again to change it's mind
+    span = document.getElementById(id);
     saveSpan(span);
    
     // const lastPos = JSON.parse(localStorage.getItem("pastId"))
@@ -132,9 +135,10 @@ function spanFromTreePos(treePos) {
 
 function saveSpan(span) {
     const treePos = getNodeTreePosition(span);
+    console.log(span);
     const rangeStart = span.previousSibling.length || 0;
     const rangeEnd = rangeStart + span.textContent.length;
-    console.log(rangeStart, rangeEnd);
+    // console.log(rangeStart, rangeEnd);
     const treeObj = { treePos, rangeVals: [rangeStart, rangeEnd] };
     localStorage.treeObj = JSON.stringify(treeObj);
     console.log(JSON.stringify(treeObj));
