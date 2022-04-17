@@ -50,7 +50,7 @@ function getNodeTreePosition(node) {
 
 function _getNodeTreePosition(node) {
     const nodeTreeRecurse = (node, idx=0) => {
-        console.log(node, idx);
+        console.log(node, node.className, idx);
         const posArr = [];
         // we find an ID to hook onto, and it isn't the span we created
         if (node.id) {
@@ -58,9 +58,12 @@ function _getNodeTreePosition(node) {
             return posArr;
         }
 
-        const previousSibling = node.previousSibling;
+        let previousSibling = node.previousSibling;
+        if (previousSibling && previousSibling.className === 'placeSaverHighlight') {
+               previousSibling = previousSibling.previousSibling;
+               idx--;
+        }
         if (previousSibling) {
-           
             posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
             return posArr;
         }
@@ -76,6 +79,12 @@ function _getNodeTreePosition(node) {
     }
 
     return nodeTreeRecurse(node).reverse();
+}
+
+function getTreeObjFromRangeVals(treeObj) {
+    // this is the way ?? hopefully
+    // adjust the range indices based on encounter with old span
+
 }
 
 function nodeFromPosition(posArr) {
@@ -137,6 +146,7 @@ function createHighlightedSpan(range) {
         startNode: range.startContainer, 
         endNode: range.endContainer
     }
+    saveRange(rangeVals);
     // console.log(range, range.startOffset, range.endOffset, range.endContainer);
     let span = document.createElement("span");
 
@@ -160,12 +170,16 @@ function createHighlightedSpan(range) {
     // localStorage.pastId = JSON.stringify(treePos);
     span.scrollIntoView({behavior: "smooth"});
     oldId = id;
-    saveRange(rangeVals);
 }
 
-function spanFromTreePos(treePos) {
+function spanFromTreeObj(treeObj) {
     removeOldSpan();
-    const range = nodeFromPosition(treePos);
+    const startNode = nodeFromPosition(treeObj['startPos']);
+    const endNode = nodeFromPosition(treeObj['endPos']);
+    const rangeVals = treeObj['rangeIndices'];
+    const range = document.createRange();
+    range.setStart(startNode, rangeVals[0]);
+    range.setEnd(endNode, rangeVals[1]);
     createHighlightedSpan(range);
 }
 
@@ -210,6 +224,7 @@ function removeOldSpan() {
         }
     }
 }
+
 
 
 
