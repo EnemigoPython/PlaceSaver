@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.style.backgroundColor = 'yellow';
     
     btn.addEventListener('click', () => {
-        btn.style.backgroundColor = 'blue';
+        btn.style.backgroundColor = 'green';
+        chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+        });
     });
 });
