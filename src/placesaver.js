@@ -17,36 +17,6 @@ function generateId() {
     return id;
 }
 
-function getNodeTreePosition(node) {
-    const nodeTreeRecurse = (node, idx=0) => {
-        // console.log(node, idx);
-        const posArr = [];
-        // we find an ID to hook onto, and it isn't the span we created
-        if (node.id && idx >= 0) {
-            if (idx > 0) posArr.push(idx);
-            posArr.push(node.id);
-            return posArr;
-        }
-
-        const previousSibling = node.previousSibling;
-        if (previousSibling) {
-           
-            posArr.push(...nodeTreeRecurse(previousSibling, idx+1));
-            return posArr;
-        }
-        // posArr.push(idx < 0 ? 0 : idx);
-        posArr.push(idx); 
-        const parent = node.parentNode;
-        // we will stop zooming out if we hit the body, else continue searching
-        if (parent.nodeName !== 'BODY') {
-            posArr.push(...nodeTreeRecurse(parent));
-        }
-        // we hit the body without finding an ID, so end at the body
-        return posArr;
-    }
-
-    return nodeTreeRecurse(node, -1).reverse();
-}
 
 function _getNodeTreePosition(node) {
     const nodeTreeRecurse = (node, idx=0) => {
@@ -81,10 +51,50 @@ function _getNodeTreePosition(node) {
     return nodeTreeRecurse(node).reverse();
 }
 
-function getTreeObjFromRangeVals(treeObj) {
+function getTreeObjFromRangeVals(rangeVals) {
     // this is the way ?? hopefully
     // adjust the range indices based on encounter with old span
+    const nodeTreeRecurse = (node, idx, rangeIdx) => {
+        let incrRange = false;
+        // console.log(node, node.className, idx);
+        const posArr = [];
+        // we find an ID to hook onto, and it isn't the span we created
+        if (node.id && node.className !== 'placeSaverHighlight') {
+            posArr.push(idx, node.id);
+            return posArr;
+        }
 
+        let previousSibling = node.previousSibling;
+        if (previousSibling && previousSibling.className === 'placeSaverHighlight') {
+                rangeVals.rangeIndices[rangeIdx] += previousSibling.textContent.length;
+                previousSibling = previousSibling.previousSibling;
+                idx--;
+                incrRange = true;
+        }
+        if (previousSibling) {
+            if (incrRange) {
+                rangeVals.rangeIndices[rangeIdx] += previousSibling.textContent.length;
+            }
+            posArr.push(...nodeTreeRecurse(previousSibling, idx+1, rangeIdx));
+            return posArr;
+        }
+        // posArr.push(idx < 0 ? 0 : idx);
+        posArr.push(idx); 
+        const parent = node.parentNode;
+        // we will stop zooming out if we hit the body, else continue searching
+        if (parent.nodeName !== 'BODY') {
+            posArr.push(...nodeTreeRecurse(parent, 0, rangeIdx));
+        }
+        // we hit the body without finding an ID, so end at the body
+        return posArr;
+    }
+    const startPos = nodeTreeRecurse(rangeVals.startNode, 0, 0).reverse();
+    const endPos = nodeTreeRecurse(rangeVals.endNode, 0, 1).reverse();
+    return { 
+        startPos, 
+        endPos, 
+        rangeIndices: rangeVals.rangeIndices
+    };
 }
 
 function nodeFromPosition(posArr) {
@@ -196,18 +206,19 @@ function saveSpan(span) {
 
 function saveRange(rangeVals) {
     console.log(rangeVals);
-    const rangeIndices = rangeVals.rangeIndices;
-    const startPos = _getNodeTreePosition(rangeVals.startNode);
-    let endPos;
-    if (rangeVals.startNode === rangeVals.endNode) {
-        endPos = startPos;
-    } else {
-        endPos = _getNodeTreePosition(rangeVals.endNode);
-    }
-    console.log(startPos, endPos);
+    // const rangeIndices = rangeVals.rangeIndices;
+    // const startPos = _getNodeTreePosition(rangeVals.startNode);
+    // let endPos;
+    // if (rangeVals.startNode === rangeVals.endNode) {
+    //     endPos = startPos;
+    // } else {
+    //     endPos = _getNodeTreePosition(rangeVals.endNode);
+    // }
+    // console.log(startPos, endPos);
 
-    // console.log(rangeStart, rangeEnd);
-    const treeObj = { startPos, endPos, rangeIndices };
+    // // console.log(rangeStart, rangeEnd);
+    // const treeObj = { startPos, endPos, rangeIndices };
+    const treeObj = getTreeObjFromRangeVals(rangeVals);
     localStorage.treeObj = JSON.stringify(treeObj);
     console.log(JSON.stringify(treeObj));
 }
