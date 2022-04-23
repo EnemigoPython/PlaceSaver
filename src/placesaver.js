@@ -56,10 +56,15 @@ function getTreeObjFromRangeVals(rangeVals) {
     // adjust the range indices based on encounter with old span
     const nodeTreeRecurse = (node, idx, rangeIdx) => {
         let incrRange = false;
-        // console.log(node, node.className, idx);
         const posArr = [];
+        if (node.parentNode.className === 'placeSaverHighlight') {
+            // console.log(node, node.previousSibling, node.nextSibling, node.parentNode);
+            node = node.parentNode.previousSibling;
+            rangeVals.rangeIndices[rangeIdx] += node.textContent.length;
+        }
+        // console.log(node, node.className, idx);
         // we find an ID to hook onto, and it isn't the span we created
-        if (node.id && node.className !== 'placeSaverHighlight') {
+        if (node.id) {
             posArr.push(idx, node.id);
             return posArr;
         }
