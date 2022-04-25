@@ -4,6 +4,7 @@
     "version": "0.1",
     "manifest_version": 3,
     "permissions": [
+      "tabs",
       "storage"
     ],
     "content_scripts": [
@@ -12,7 +13,7 @@
             "http://*/*",
             "https://*/*"
           ],
-        "js": ["/src/placesaver.js"]
+        "js": ["/src/content.js"]
       }
     ],
     "background": {

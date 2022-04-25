@@ -1,6 +1,12 @@
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    console.log(request.tagName);
+    if (request.tagName) {
+      console.log(request.tagName);
+    }
+    // if (request.loadTest) {
+      console.log(request.url);
+    // }
+    // console.log("hi");
     sendResponse();
   }
 );
