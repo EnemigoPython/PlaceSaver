@@ -1,12 +1,11 @@
+let url;
+
 chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.tagName) {
-      console.log(request.tagName);
+  (request, _sender, sendResponse) => {
+    if (request.url !== url) {
+      url = request.url;
+      console.log(url);
     }
-    // if (request.loadTest) {
-      console.log(request.url);
-    // }
-    // console.log("hi");
     sendResponse();
   }
 );
