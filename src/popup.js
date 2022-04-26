@@ -1,44 +1,47 @@
-// document.addEventListener('DOMContentLoaded', () => {
-//     // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//     //     chrome.tabs.sendMessage(tabs[0].id, {greeting: tabs});
-//     // });
-//     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//         const url = tabs[0].url;
-//         if (!url.startsWith("chrome")) {
-//             chrome.tabs.sendMessage(tabs[0].id, {greeting: tabs[0].url});
-//         }
-//         // chrome.runtime.sendMessage({url: tabs[0].url});
-//         // chrome.runtime.sendMessage({url: "a"});
-//     });
-// });
+function loadPlaceTagLabels() {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        let url;
+        try {
+            url = new URL(tabs[0].url);
+            url = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
+        } catch (e) {
+            url = tabs[0].url;
+        }
+        chrome.runtime.sendMessage({ type: "urlCheck", url }, (res) => {
+            placeTagList.removeChild(placeholder);
+            if (res.value) {
 
-// chrome.runtime.sendMessage({loadTest: "hi"}, (res) => {
+            } else {
+                placeTagList.appendChild(newPlaceTagLabel("No Place Tags found."));
+            }   
+        });
+    });
+}
 
-// });
-chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    let url;
-    try {
-        url = new URL(tabs[0].url);
-        url = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
-    } catch (e) {
-        url = tabs[0].url;
-    }
-    chrome.runtime.sendMessage({ type: "urlCheck", url });
-});
-
-function loadPlaceTags() {
-
+function newPlaceTagLabel(name) {
+    const placeTagLabel = document.createElement("li");
+    const text = document.createTextNode(name);
+    placeTagLabel.appendChild(text);
+    placeTagLabel.className = "placeTagLabel";
+    return placeTagLabel;
 }
 
 const btn = document.getElementById('hello');
 const input = document.getElementById('tagInput');
-
-btn.style.backgroundColor = 'yellow';
+const placeTagList = document.getElementById('placeTagList');
+const placeholder = document.getElementById('placeholder');
+const warning = document.getElementById('warning');
 
 btn.addEventListener('click', () => {
-    const value = input.value;
-    btn.style.backgroundColor = 'green';
-    chrome.runtime.sendMessage({tagName: value}, function(response) {
-        // chrome.extension.getBackgroundPage().console.log("response.farewell");
-    });
+    const name = input.value;
+    if (name) {
+        chrome.runtime.sendMessage({ type: "newTag", url, value: name }, (res) => {
+
+        });
+    } else {
+        warning.innerText = "Place Tag name cannot be blank."
+        warning.style.visibility = "visible";
+    }
 });
+
+loadPlaceTagLabels();

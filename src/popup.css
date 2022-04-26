@@ -1,0 +1,12 @@
+body {
+  width: 300px;
+}
+
+#title {
+  text-align: center;
+}
+
+#warning {
+  visibility: hidden;
+  color: red;
+}
