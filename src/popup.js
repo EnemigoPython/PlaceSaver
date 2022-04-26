@@ -17,8 +17,8 @@
 // });
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     let url = new URL(tabs[0].url);
-    url = `${url.protocol}${url.host}${url.pathname}${url.search}`; // strip hash
-    chrome.runtime.sendMessage({url});
+    url = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
+    chrome.runtime.sendMessage({ type: "urlCheck", url });
 });
 
 function loadPlaceTags() {
