@@ -21,5 +21,10 @@ chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
       sendResponse({ value });
       console.log(value);
       break;
+    case "newTag":
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          chrome.tabs.sendMessage(tabs[0].id, {greeting: tabs});
+      });
+      break;
   }
 });

@@ -1,6 +1,13 @@
+let url;
+const btn = document.getElementById('hello');
+const input = document.getElementById('tagInput');
+const placeTagList = document.getElementById('placeTagList');
+const placeholder = document.getElementById('placeholder');
+const warning = document.getElementById('warning');
+const addNewTag = document.getElementById('addNewTag');
+
 function loadPlaceTagLabels() {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        let url;
         try {
             url = new URL(tabs[0].url);
             url = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
@@ -26,22 +33,16 @@ function newPlaceTagLabel(name) {
     return placeTagLabel;
 }
 
-const btn = document.getElementById('hello');
-const input = document.getElementById('tagInput');
-const placeTagList = document.getElementById('placeTagList');
-const placeholder = document.getElementById('placeholder');
-const warning = document.getElementById('warning');
-
-btn.addEventListener('click', () => {
+addNewTag.addEventListener('submit', (e) => {
     const name = input.value;
     if (name) {
-        chrome.runtime.sendMessage({ type: "newTag", url, value: name }, (res) => {
-
-        });
+        // this isn't going to be synchronous so don't expect anything back immediately
+        chrome.runtime.sendMessage({ type: "newTag", name });
     } else {
         warning.innerText = "Place Tag name cannot be blank."
         warning.style.visibility = "visible";
     }
+    e.preventDefault();
 });
 
 loadPlaceTagLabels();
