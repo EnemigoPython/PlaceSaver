@@ -1,4 +1,3 @@
-let url;
 const btn = document.getElementById('hello');
 const input = document.getElementById('tagInput');
 const placeTagList = document.getElementById('placeTagList');
@@ -6,7 +5,8 @@ const placeholder = document.getElementById('placeholder');
 const warning = document.getElementById('warning');
 const addNewTag = document.getElementById('addNewTag');
 
-function loadPlaceTagLabels() {
+function getURL() {
+    let url;
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
         try {
             url = new URL(tabs[0].url);
@@ -14,15 +14,29 @@ function loadPlaceTagLabels() {
         } catch (e) {
             url = tabs[0].url;
         }
-        chrome.runtime.sendMessage({ type: "urlCheck", url }, (res) => {
-            placeTagList.removeChild(placeholder);
-            if (res.value) {
+    });
+    return url;
+}
 
-            } else {
-                placeTagList.appendChild(newPlaceTagLabel("No Place Tags found."));
-            }   
+async function getStorage(key) {
+    return new Promise ((resolve, reject) => {
+        chrome.storage.sync.get(key, (valueObj) => {
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            // the return value is an object but we are only querying one value
+            resolve(valueObj[key] ?? null);
         });
     });
+}
+
+function loadPlaceTags(urlData) {
+    placeTagList.removeChild(placeholder);
+    if (urlData) {
+        placeTagList.appendChild(newPlaceTagLabel(urlData));
+    } else {
+        placeTagList.appendChild(newPlaceTagLabel("No Place Tags found."));
+    }
 }
 
 function newPlaceTagLabel(name) {
@@ -45,4 +59,9 @@ addNewTag.addEventListener('submit', (e) => {
     e.preventDefault();
 });
 
-loadPlaceTagLabels();
+// anonymous async function to call await
+(async () => {
+    const url = getURL();
+    const urlData = await getStorage(url);
+    loadPlaceTags(urlData);
+})();

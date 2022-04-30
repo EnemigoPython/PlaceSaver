@@ -17,10 +17,7 @@ const initStorageCache = getAllStorageSyncData().then(items => {
 chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
   switch (req.type) {
     case "urlCheck":
-      const value = storageCache[req.url] || null;
-      sendResponse({ value });
-      console.log(value);
-      break;
+      console.log(req.url)
     case "newTag":
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           chrome.tabs.sendMessage(tabs[0].id, {greeting: tabs});
