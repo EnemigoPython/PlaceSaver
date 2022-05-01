@@ -4,6 +4,7 @@ let port;
 // HTML Elements
 const btn = document.getElementById('hello');
 const input = document.getElementById('tagInput');
+const submitBtn = document.getElementById('submitBtn');
 const placeTagList = document.getElementById('placeTagList');
 const placeholder = document.getElementById('placeholder');
 const warning = document.getElementById('warning');
@@ -86,7 +87,7 @@ function listenForSubmit() {
 function listenForPortResponse() {
     port.onMessage.addListener(msg => {
         switch (msg.type) {
-            case "loadRes":
+            case "addRes":
                 if (msg.success) {
 
                 } else {
@@ -102,12 +103,15 @@ function listenForPortResponse() {
     const tab = await getCurrentTab();
     // the content script is not loaded on chrome pages, not entirely sure why...
     const isChromePage = tab.url.startsWith("chrome://");
-    if (!isChromePage) {
+    if (isChromePage) {
+        // this has to be set in the js or it will override autofocus
+        input.disabled = true;
+        submitBtn.disabled = true;
+    } else {
         const url = getStrippedURL(tab.url);
         const urlData = await getStorage(url);
         loadPlaceTags(urlData);
         warning.style.visibility = "hidden"; // hide the default warning
-        input.disabled = false;
         port = chrome.tabs.connect(tab.id); // initialise port connection
         listenForSubmit(); // we only want to do this if the content script can be reached
         listenForPortResponse();

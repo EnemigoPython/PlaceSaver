@@ -1,6 +1,6 @@
 // globals
-let currentSelection;
 let oldId;
+
 
 function generateId() {
   let id = ''
@@ -12,10 +12,7 @@ function generateId() {
   return id;
 }
 
-function createTag() {
-  const selection = window.getSelection();
-  if (!selection) return;
-
+function createTagFromSelection(selection) {
   // a span can't wrap multiple lines, so we need to find the first newline to set
   // the selection extent to.
   const spanFragments = selection.toString().split(/\n|\s{2}/);
@@ -38,11 +35,11 @@ function createTag() {
   }
 
   const range = selection.getRangeAt(0);
-  createHighlightedSpan(range);
+  createTag(range);
   selection.removeAllRanges();
 }
 
-function removeOldSpan() {
+function removeOldTag() {
   if (oldId) {
       let oldSpan = document.getElementById(oldId);
       oldSpan.outerHTML = oldSpan.innerHTML;
@@ -55,7 +52,7 @@ function removeOldSpan() {
   }
 }
 
-function createHighlightedSpan(range) {
+function createTag(range) {
   const rangeVals = {
       rangeIndices: [range.startOffset, range.endOffset], 
       startNode: range.startContainer, 
@@ -70,7 +67,7 @@ function createHighlightedSpan(range) {
   span.appendChild(range.extractContents());
 
   range.insertNode(span);
-  removeOldSpan();
+  removeOldTag();
 
   // the span we had before is cached and the node still believes the old span exists
   // (not good!) Get the span again to change it's mind
@@ -84,16 +81,18 @@ chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(msg => {
     switch (msg.type) {
       case "addTag":
-        currentSelection = window.getSelection();
+        const currentSelection = window.getSelection();
         if (currentSelection.toString()) {
-          createTag();
+          createTagFromSelection(currentSelection);
         } else {
           port.postMessage({ 
-            type: "loadRes", 
+            type: "addRes", 
             success: false, 
             text: "No selection on the page." 
           });
         }
+        break;
+      case "viewTag":
         break;
     }
   });
