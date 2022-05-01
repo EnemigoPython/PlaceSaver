@@ -67,8 +67,6 @@ function validateTagName(name) {
     // check existing names to see if there is a name conflict
     const existingNames = Array.from(placeTagList.children)
         .map(child => child.textContent);
-    console.log(existingNames);
-    console.log(!existingNames.includes(name));
     return name && !existingNames.includes(name);
 }
 
