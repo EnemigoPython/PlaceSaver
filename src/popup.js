@@ -1,3 +1,6 @@
+// message port to communicate with active tab
+let port;
+
 // HTML Elements
 const btn = document.getElementById('hello');
 const input = document.getElementById('tagInput');
@@ -6,7 +9,6 @@ const placeholder = document.getElementById('placeholder');
 const warning = document.getElementById('warning');
 const addNewTag = document.getElementById('addNewTag');
 
-// const tabPort = chrome.tabs.connect();
 
 async function getCurrentTab() {
     return new Promise((resolve, reject) => {
@@ -16,16 +18,16 @@ async function getCurrentTab() {
             }
             resolve(tabs[0]);
         });
-    })
+    });
 }
 
-function getStrippedURL(url) {
-    try {
-        url = new URL(tabs[0].url);
-        url = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
-    } catch (e) {
+function getStrippedURL(url, isChromePage) {
+    if (isChromePage) {
+        return url;
     }
-    return url;
+    strippedUrl = new URL(url);
+    strippedUrl = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
+    return strippedUrl;
 }
 
 async function getStorage(key) {
@@ -57,10 +59,18 @@ function newPlaceTagLabel(name) {
     return placeTagLabel;
 }
 
-addNewTag.addEventListener('submit', (e) => {
+function validateTagName(name) {
+    // check existing names to see if there is a name conflict
+    const existingNames = placeTagList.children.map(child => {
+        child.text;
+    });
+    return name && !existingNames.contains(name);
+}
+
+addNewTag.addEventListener('submit', e => {
     const name = input.value;
-    if (name) {
-        // tabPort.sendMessage({test: 'hi'});
+    if (validateTagName(name)) {
+        port.postMessage({ type: 'addTag', name });
     } else {
         warning.innerText = "Place Tag name cannot be blank."
         warning.style.visibility = "visible";
@@ -71,15 +81,12 @@ addNewTag.addEventListener('submit', (e) => {
 // anonymous async function to call await
 (async () => {
     const tab = await getCurrentTab();
-    const url = getStrippedURL(tab.url);
+    // the content script is not loaded on chrome pages, not entirely sure why...
+    const isChromePage = tab.url.startsWith("chrome://");
+    const url = getStrippedURL(tab.url, isChromePage);
     const urlData = await getStorage(url);
     loadPlaceTags(urlData);
-    // the content script is not loaded on chrome pages, not entirely sure why...
-    const chromePage = url.startsWith("chrome://")
-    if (!chromePage) {
-        // chrome.tabs.sendMessage(tab.id, {test: 'hi'}, (res) => {
-
-        // });
-        const tabPort = chrome.tabs.connect(tab.id);
+    if (!isChromePage) {
+        port = chrome.tabs.connect(tab.id); // initialise port connection
     }
 })();
