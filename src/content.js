@@ -1,11 +1,10 @@
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      console.log(sender.tab ?
-                  "from a content script:" + sender.tab.url :
-                  "from the extension");
-    //   if (request.greeting)
-    //     sendResponse({farewell: "goodbye"});
-    }
-  );
+const popupPort = chrome.runtime.connect();
+console.log("hi");
 
-//   console.log('hello');
+chrome.runtime.onConnect.addListener((port) => {
+  port.onMessage.addListener((msg) => {
+    if (msg.test) {
+      console.log(msg.test);
+    }
+  });
+});
