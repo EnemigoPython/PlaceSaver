@@ -77,6 +77,8 @@ addNewTag.addEventListener('submit', (e) => {
     // the content script is not loaded on chrome pages, not entirely sure why...
     const chromePage = url.startsWith("chrome://")
     if (!chromePage) {
-        const tabPort = chrome.tabs.connect(tab.id);
+        chrome.tabs.sendMessage(tab.id, {test: 'hi'}, (res) => {
+
+        });
     }
 })();
