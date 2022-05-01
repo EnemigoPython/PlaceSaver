@@ -1,4 +1,4 @@
-// message port to communicate with active tab
+// message port to communicate with current tab
 let port;
 
 // HTML Elements
@@ -21,10 +21,7 @@ async function getCurrentTab() {
     });
 }
 
-function getStrippedURL(url, isChromePage) {
-    if (isChromePage) {
-        return url;
-    }
+function getStrippedURL(url) {
     strippedUrl = new URL(url);
     strippedUrl = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
     return strippedUrl;
@@ -59,6 +56,13 @@ function newPlaceTagLabel(name) {
     return placeTagLabel;
 }
 
+function showWarning(text='') {
+    if (text) {
+        warning.innerText = text;
+    }
+    warning.style.visibility = "visible";
+}
+
 function validateTagName(name) {
     // check existing names to see if there is a name conflict
     const existingNames = Array.from(placeTagList.children)
@@ -68,27 +72,46 @@ function validateTagName(name) {
     return name && !existingNames.includes(name);
 }
 
-addNewTag.addEventListener('submit', e => {
-    const name = input.value;
-    if (validateTagName(name)) {
-        port.postMessage({ type: 'addTag', name });
-        input.value = '';
-    } else {
-        warning.innerText = "Place Tag name cannot be blank."
-        warning.style.visibility = "visible";
-    }
-    e.preventDefault();
-});
+function listenForSubmit() {
+    addNewTag.addEventListener('submit', e => {
+        const name = input.value;
+        if (validateTagName(name)) {
+            port.postMessage({ type: 'addTag', name });
+            input.value = '';
+        } else {
+            showWarning("Place Tag name cannot be blank.");
+        }
+        e.preventDefault();
+    });
+}
+
+function listenForPortResponse() {
+    port.onMessage.addListener(msg => {
+        switch (msg.type) {
+            case "loadRes":
+                if (msg.success) {
+
+                } else {
+                    showWarning(msg.text);
+                }
+                break;
+        }
+    });
+}
 
 // anonymous async function to call await
 (async () => {
     const tab = await getCurrentTab();
     // the content script is not loaded on chrome pages, not entirely sure why...
     const isChromePage = tab.url.startsWith("chrome://");
-    const url = getStrippedURL(tab.url, isChromePage);
-    const urlData = await getStorage(url);
-    loadPlaceTags(urlData);
     if (!isChromePage) {
+        const url = getStrippedURL(tab.url);
+        const urlData = await getStorage(url);
+        loadPlaceTags(urlData);
+        warning.style.visibility = "hidden"; // hide the default warning
+        input.disabled = false;
         port = chrome.tabs.connect(tab.id); // initialise port connection
+        listenForSubmit(); // we only want to do this if the content script can be reached
+        listenForPortResponse();
     }
 })();

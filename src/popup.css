@@ -7,6 +7,5 @@ body {
 }
 
 #warning {
-  visibility: hidden;
   color: red;
 }
