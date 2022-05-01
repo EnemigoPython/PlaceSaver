@@ -1,8 +1,9 @@
 chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(msg => {
     switch (msg.type) {
-      case "newTag":
+      case "addTag":
         console.log(msg.name);
+        console.log(window.getSelection().toString());
         break;
     }
   });

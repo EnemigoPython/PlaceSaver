@@ -61,16 +61,18 @@ function newPlaceTagLabel(name) {
 
 function validateTagName(name) {
     // check existing names to see if there is a name conflict
-    const existingNames = placeTagList.children.map(child => {
-        child.text;
-    });
-    return name && !existingNames.contains(name);
+    const existingNames = Array.from(placeTagList.children)
+        .map(child => child.textContent);
+    console.log(existingNames);
+    console.log(!existingNames.includes(name));
+    return name && !existingNames.includes(name);
 }
 
 addNewTag.addEventListener('submit', e => {
     const name = input.value;
     if (validateTagName(name)) {
         port.postMessage({ type: 'addTag', name });
+        input.value = '';
     } else {
         warning.innerText = "Place Tag name cannot be blank."
         warning.style.visibility = "visible";
