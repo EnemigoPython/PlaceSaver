@@ -1,6 +1,7 @@
 // globals
 let port; // port to content script
 let url;
+let pageData // place tags for current url, loaded from storage
 
 // HTML Elements
 const btn = document.getElementById('hello');
@@ -23,9 +24,9 @@ async function getCurrentTab() {
     });
 }
 
-function getStrippedURL(url) {
-    strippedUrl = new URL(url);
-    strippedUrl = `${url.protocol}//${url.host}${url.pathname}${url.search}`; // strip hash
+function getStrippedURL(tabUrl) {
+    strippedUrl = new URL(tabUrl);
+    strippedUrl = `${strippedUrl.protocol}//${strippedUrl.host}${strippedUrl.pathname}${strippedUrl.search}`; // strip hash
     return strippedUrl;
 }
 
@@ -41,18 +42,32 @@ async function getStorage(key) {
     });
 }
 
-function loadPlaceTags(urlData) {
+async function getAllStorage() {
+    return new Promise ((resolve, reject) => {
+        chrome.storage.sync.get(null, (valueObj) => {
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            // return the entire object
+            resolve(valueObj);
+        });
+    });
+}
+
+function loadPlaceTags() {
     placeTagList.removeChild(placeholder);
-    if (urlData) {
-        placeTagList.appendChild(newPlaceTagLabel(urlData));
+    if (pageData) {
+        pageData.forEach(tag => {
+            placeTagList.appendChild(newPlaceTagLabel(tag));
+        });
     } else {
-        placeTagList.appendChild(newPlaceTagLabel("No Place Tags found."));
+        placeTagList.appendChild(newPlaceTagLabel({ name: "No Place Tags found." }));
     }
 }
 
-function newPlaceTagLabel(name) {
+function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("li");
-    const text = document.createTextNode(name);
+    const text = document.createTextNode(tagData.name);
     placeTagLabel.appendChild(text);
     placeTagLabel.className = "placeTagLabel";
     return placeTagLabel;
@@ -65,8 +80,15 @@ function savePlaceTag(name, treeRef) {
         endPos: treeRef.endPos,
         rangeIndices: treeRef.rangeIndices
     };
-    console.log(storageObj);
-    // chrome.storage.sync.set({  })
+    if (pageData) {
+        pageData.push(storageObj);
+    } else {
+        pageData = [storageObj];
+    }
+    console.log(url, storageObj);
+    chrome.storage.sync.set({ [url]: pageData }, () => {
+        placeTagList.appendChild(newPlaceTagLabel(name));
+    });
 }
 
 function showWarning(text='') {
@@ -122,8 +144,10 @@ function listenForPortResponse() {
         submitBtn.disabled = true;
     } else {
         url = getStrippedURL(tab.url);
-        const urlData = await getStorage(url);
-        loadPlaceTags(urlData);
+        pageData = await getStorage(url);
+        // console.log(url);
+        // console.log(urlData);
+        loadPlaceTags();
         warning.style.visibility = "hidden"; // hide the default warning
         port = chrome.tabs.connect(tab.id); // initialise port connection
         listenForSubmit(); // we only want to do this if the content script can be reached
