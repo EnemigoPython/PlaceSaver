@@ -68,9 +68,18 @@ function loadPlaceTags() {
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("li");
     const text = document.createTextNode(tagData.name);
-    placeTagLabel.appendChild(text);
+    const tagBtn = document.createElement("button");
+    addLabelListener(tagBtn, tagData);
+    placeTagLabel.appendChild(tagBtn);
+    tagBtn.appendChild(text);
     placeTagLabel.className = "placeTagLabel";
     return placeTagLabel;
+}
+
+function addLabelListener(placeTagBtn, tagData) {
+    placeTagBtn.addEventListener('click', e => {
+        console.log(tagData.name);
+    });
 }
 
 function savePlaceTag(name, treeRef) {
@@ -85,9 +94,8 @@ function savePlaceTag(name, treeRef) {
     } else {
         pageData = [storageObj];
     }
-    console.log(url, storageObj);
     chrome.storage.sync.set({ [url]: pageData }, () => {
-        placeTagList.appendChild(newPlaceTagLabel(name));
+        placeTagList.appendChild(newPlaceTagLabel(storageObj));
     });
 }
 
@@ -100,8 +108,7 @@ function showWarning(text='') {
 
 function validateTagName(name) {
     // check existing names to see if there is a name conflict
-    const existingNames = Array.from(placeTagList.children)
-        .map(child => child.textContent);
+    const existingNames = pageData.map(tag => tag.name);
     return name && !existingNames.includes(name);
 }
 
