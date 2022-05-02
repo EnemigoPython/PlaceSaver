@@ -58,7 +58,7 @@ function getTreeRef(rangeRef) {
   };
 }
 
-function createTagFromSelection(selection) {
+function tagFromSelection(selection) {
   // a span can't wrap multiple lines, so we need to find the first newline to set
   // the selection extent to.
   const spanFragments = selection.toString().split(/\n|\s{2}/);
@@ -126,16 +126,50 @@ function createTag(range) {
   oldId = id;
 }
 
+function nodeFromPosArr(posArr) {
+  let node;
+    // if the first element is a string, it's an ID
+    if (typeof posArr[0] === 'string') {
+        node = document.getElementById(posArr[0]);
+    } else {
+        node = document.body.firstChild;
+        // we start the walk at the second element, so insert an element at pos 0
+        posArr.unshift('BODY');
+    }
+    posArr.slice(1).forEach((sibling, idx) => {
+        for (let i = 0; i < sibling; i++) {
+            node = node.nextSibling;
+        }
+        // until we reach the last element, we want to keep zooming in
+        if (idx + 2 < posArr.length) {
+            node = node.firstChild;
+        }
+    });
+
+    return node;
+}
+
+function tagFromTreeRef(treeRef) {
+  removeOldTag();
+  const startNode = nodeFromPosArr(treeRef['startPos']);
+  const endNode = nodeFromPosArr(treeRef['endPos']);
+  const rangeVals = treeRef['rangeIndices'];
+  const range = document.createRange();
+  range.setStart(startNode, rangeVals[0]);
+  range.setEnd(endNode, rangeVals[1]);
+  createTag(range);
+}
+
 chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(msg => {
     switch (msg.type) {
       case "addTag":
         const currentSelection = window.getSelection();
         if (currentSelection.toString()) {
-          const treeRef = createTagFromSelection(currentSelection);
-          console.log(treeRef);
-          const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
-          console.log(size);
+          const treeRef = tagFromSelection(currentSelection);
+          // console.log(treeRef);
+          // const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
+          // console.log(size);
           port.postMessage({
             type: "addRes",
             success: true,
@@ -151,6 +185,9 @@ chrome.runtime.onConnect.addListener(port => {
         }
         break;
       case "viewTag":
+        const treeRef = msg.treeRef;
+        console.log(treeRef);
+        tagFromTreeRef(treeRef);
         break;
     }
   });

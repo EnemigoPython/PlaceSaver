@@ -1,9 +1,9 @@
-// globals
-let port; // port to content script
+//// globals ////
+let port; // message port to content script
 let url;
 let pageData // place tags for current url, loaded from storage
 
-// HTML Elements
+//// HTML Elements ////
 const btn = document.getElementById('hello');
 const input = document.getElementById('tagInput');
 const submitBtn = document.getElementById('submitBtn');
@@ -77,8 +77,13 @@ function newPlaceTagLabel(tagData) {
 }
 
 function addLabelListener(placeTagBtn, tagData) {
-    placeTagBtn.addEventListener('click', e => {
-        console.log(tagData.name);
+    const treeRef = { 
+        startPos: tagData.startPos,
+        endPos: tagData.endPos,
+        rangeIndices: tagData.rangeIndices
+    };
+    placeTagBtn.addEventListener('click', () => {
+        port.postMessage({ type: "viewTag", treeRef });
     });
 }
 
@@ -135,6 +140,8 @@ function listenForPortResponse() {
                 } else {
                     showWarning(msg.text);
                 }
+                break;
+            case "viewRes":
                 break;
         }
     });
