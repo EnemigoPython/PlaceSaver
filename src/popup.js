@@ -1,5 +1,6 @@
-// message port to communicate with current tab
-let port;
+// globals
+let port; // port to content script
+let url;
 
 // HTML Elements
 const btn = document.getElementById('hello');
@@ -57,6 +58,17 @@ function newPlaceTagLabel(name) {
     return placeTagLabel;
 }
 
+function savePlaceTag(name, treeRef) {
+    const storageObj = { 
+        name,
+        startPos: treeRef.startPos,
+        endPos: treeRef.endPos,
+        rangeIndices: treeRef.rangeIndices
+    };
+    console.log(storageObj);
+    // chrome.storage.sync.set({  })
+}
+
 function showWarning(text='') {
     if (text) {
         warning.innerText = text;
@@ -90,7 +102,7 @@ function listenForPortResponse() {
             case "addRes":
                 if (msg.success) {
                     const treeRef = msg.treeRef;
-                    console.log(treeRef);
+                    savePlaceTag(msg.name, treeRef);
                 } else {
                     showWarning(msg.text);
                 }
@@ -109,7 +121,7 @@ function listenForPortResponse() {
         input.disabled = true;
         submitBtn.disabled = true;
     } else {
-        const url = getStrippedURL(tab.url);
+        url = getStrippedURL(tab.url);
         const urlData = await getStorage(url);
         loadPlaceTags(urlData);
         warning.style.visibility = "hidden"; // hide the default warning

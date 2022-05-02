@@ -16,7 +16,7 @@ function getTreeRef(rangeRef) {
   const nodeTreeRecurse = (node, idx, rangeIdx) => {
       let incrRange = false;
       const posArr = [];
-      if (node.parentNode.className === 'placeSaverHighlight') {
+      if (node.parentNode.className === 'placeTagHighlight') {
           node = node.parentNode.previousSibling;
           rangeRef.rangeIndices[rangeIdx] += node.textContent.length;
       }
@@ -27,7 +27,7 @@ function getTreeRef(rangeRef) {
       }
 
       let previousSibling = node.previousSibling;
-      if (previousSibling && previousSibling.className === 'placeSaverHighlight') {
+      if (previousSibling && previousSibling.className === 'placeTagHighlight') {
               rangeRef.rangeIndices[rangeIdx] += previousSibling.textContent.length;
               previousSibling = previousSibling.previousSibling;
               idx--;
@@ -139,7 +139,8 @@ chrome.runtime.onConnect.addListener(port => {
           port.postMessage({
             type: "addRes",
             success: true,
-            treeRef
+            treeRef,
+            name: msg.name
           });
         } else {
           port.postMessage({ 
