@@ -1,10 +1,10 @@
 
-// const buttonEl = document.getElementById('btn');
+const buttonEl = document.getElementById('btn');
 
 let oldId;
 
 
-// buttonEl.addEventListener('click', highlightFromSelection);
+buttonEl.addEventListener('click', highlightFromSelection);
 
 
 function generateId() {
@@ -18,7 +18,7 @@ function generateId() {
 }
 
 
-function getTreeObjFromRangeVals(rangeVals) {
+function getTreeRef(rangeVals) {
     // adjust the range indices based on encounter with old span
     const nodeTreeRecurse = (node, idx, rangeIdx) => {
         let incrRange = false;
@@ -65,7 +65,7 @@ function getTreeObjFromRangeVals(rangeVals) {
     };
 }
 
-function nodeFromPosition(posArr) {
+function nodeFromPosArr(posArr) {
     let nodeRes;
     // if the first element is a string, it's an ID
     if (typeof posArr[0] === 'string') {
@@ -114,17 +114,17 @@ function highlightFromSelection() {
     }
 
     const range = selection.getRangeAt(0);
-    createHighlightedSpan(range);
-    selection.removeAllRanges();
-}
-
-function createHighlightedSpan(range) {
     const rangeVals = {
         rangeIndices: [range.startOffset, range.endOffset], 
         startNode: range.startContainer, 
         endNode: range.endContainer
     }
-    saveRange(rangeVals);
+    saveRangeRef(rangeVals);
+    createHighlightedSpan(range);
+    selection.removeAllRanges();
+}
+
+function createHighlightedSpan(range) {
     let span = document.createElement("span");
 
     const id = generateId();
@@ -145,8 +145,8 @@ function createHighlightedSpan(range) {
 
 function spanFromTreeObj(treeObj) {
     removeOldSpan();
-    const startNode = nodeFromPosition(treeObj['startPos']);
-    const endNode = nodeFromPosition(treeObj['endPos']);
+    const startNode = nodeFromPosArr(treeObj['startPos']);
+    const endNode = nodeFromPosArr(treeObj['endPos']);
     const rangeVals = treeObj['rangeIndices'];
     const range = document.createRange();
     range.setStart(startNode, rangeVals[0]);
@@ -155,8 +155,11 @@ function spanFromTreeObj(treeObj) {
 }
 
 
-function saveRange(rangeVals) {
-    const treeObj = getTreeObjFromRangeVals(rangeVals);
+function saveRangeRef(rangeVals) {
+    const treeObj = getTreeRef(rangeVals);
+    console.log(treeObj);
+    const size = new TextEncoder().encode(JSON.stringify(treeObj)).length;
+    console.log(size);
     localStorage.treeObj = JSON.stringify(treeObj);
 }
 
@@ -174,14 +177,8 @@ function removeOldSpan() {
 }
 
 
-// const storedTreeObj = localStorage.getItem("treeObj");
-// if (storedTreeObj) {
-//     const lastTreeObj = JSON.parse(storedTreeObj);
-//     spanFromTreeObj(lastTreeObj)
-// }
-console.log("hello");
-// chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-//     console.log(response.farewell);
-//   });
-// alert('hello');
-// document.body.style.background = 'yellow';
+const storedTreeObj = localStorage.getItem("treeObj");
+if (storedTreeObj) {
+    const lastTreeObj = JSON.parse(storedTreeObj);
+    spanFromTreeObj(lastTreeObj)
+}

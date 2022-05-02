@@ -4,12 +4,58 @@ let oldId;
 
 function generateId() {
   let id = ''
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < 16; i++) {
       const idx = Math.floor(Math.random() * chars.length);
       id += chars[idx];
   }
   return id;
+}
+
+function getTreeRef(rangeRef) {
+  const nodeTreeRecurse = (node, idx, rangeIdx) => {
+      let incrRange = false;
+      const posArr = [];
+      if (node.parentNode.className === 'placeSaverHighlight') {
+          node = node.parentNode.previousSibling;
+          rangeRef.rangeIndices[rangeIdx] += node.textContent.length;
+      }
+      // we find an ID to hook onto, and it isn't the span we created
+      if (node.id) {
+          posArr.push(idx, node.id);
+          return posArr;
+      }
+
+      let previousSibling = node.previousSibling;
+      if (previousSibling && previousSibling.className === 'placeSaverHighlight') {
+              rangeRef.rangeIndices[rangeIdx] += previousSibling.textContent.length;
+              previousSibling = previousSibling.previousSibling;
+              idx--;
+              incrRange = true;
+      }
+      if (previousSibling) {
+          if (incrRange) {
+              rangeRef.rangeIndices[rangeIdx] += previousSibling.textContent.length;
+          }
+          posArr.push(...nodeTreeRecurse(previousSibling, idx+1, rangeIdx));
+          return posArr;
+      }
+      posArr.push(idx); 
+      const parent = node.parentNode;
+      // we will stop zooming out if we hit the body, else continue searching
+      if (parent.nodeName !== 'BODY') {
+          posArr.push(...nodeTreeRecurse(parent, 0, rangeIdx));
+      }
+      // we hit the body without finding an ID, so end at the body
+      return posArr;
+  }
+  const startPos = nodeTreeRecurse(rangeRef.startNode, 0, 0).reverse();
+  const endPos = nodeTreeRecurse(rangeRef.endNode, 0, 1).reverse();
+  return { 
+      startPos, 
+      endPos, 
+      rangeIndices: rangeRef.rangeIndices
+  };
 }
 
 function createTagFromSelection(selection) {
@@ -35,8 +81,18 @@ function createTagFromSelection(selection) {
   }
 
   const range = selection.getRangeAt(0);
+  const rangeRef = {
+    rangeIndices: [range.startOffset, range.endOffset], 
+    startNode: range.startContainer, 
+    endNode: range.endContainer
+  }
+  const treeRef = getTreeRef(rangeRef);
+
   createTag(range);
   selection.removeAllRanges();
+
+  // returns the treeRef for the storage object
+  return treeRef;
 }
 
 function removeOldTag() {
@@ -53,14 +109,7 @@ function removeOldTag() {
 }
 
 function createTag(range) {
-  const rangeVals = {
-      rangeIndices: [range.startOffset, range.endOffset], 
-      startNode: range.startContainer, 
-      endNode: range.endContainer
-  }
-  // saveRange(rangeVals);
   let span = document.createElement("span");
-
   const id = generateId();
   span.setAttribute("id", id);
   span.setAttribute("class", "placeTagHighlight");
@@ -83,7 +132,15 @@ chrome.runtime.onConnect.addListener(port => {
       case "addTag":
         const currentSelection = window.getSelection();
         if (currentSelection.toString()) {
-          createTagFromSelection(currentSelection);
+          const treeRef = createTagFromSelection(currentSelection);
+          console.log(treeRef);
+          const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
+          console.log(size);
+          port.postMessage({
+            type: "addRes",
+            success: true,
+            treeRef
+          });
         } else {
           port.postMessage({ 
             type: "addRes", 

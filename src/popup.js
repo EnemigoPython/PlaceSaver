@@ -78,7 +78,7 @@ function listenForSubmit() {
             port.postMessage({ type: 'addTag', name });
             input.value = '';
         } else {
-            showWarning("Place Tag name cannot be blank.");
+            showWarning("Place Tag name cannot be blank or duplicate.");
         }
         e.preventDefault();
     });
@@ -89,7 +89,8 @@ function listenForPortResponse() {
         switch (msg.type) {
             case "addRes":
                 if (msg.success) {
-
+                    const treeRef = msg.treeRef;
+                    console.log(treeRef);
                 } else {
                     showWarning(msg.text);
                 }
