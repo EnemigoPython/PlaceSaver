@@ -144,7 +144,7 @@ function createHighlightedSpan(range) {
 }
 
 function spanFromTreeObj(treeObj) {
-    removeOldSpan();
+    // removeOldSpan();
     const startNode = nodeFromPosArr(treeObj['startPos']);
     const endNode = nodeFromPosArr(treeObj['endPos']);
     const rangeVals = treeObj['rangeIndices'];

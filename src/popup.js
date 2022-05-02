@@ -56,7 +56,7 @@ async function getAllStorage() {
 
 function loadPlaceTags() {
     placeTagList.removeChild(placeholder);
-    if (pageData) {
+    if (pageData.length) {
         pageData.forEach(tag => {
             placeTagList.appendChild(newPlaceTagLabel(tag));
         });
@@ -68,10 +68,15 @@ function loadPlaceTags() {
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("li");
     const text = document.createTextNode(tagData.name);
-    const tagBtn = document.createElement("button");
-    addLabelListener(tagBtn, tagData);
-    placeTagLabel.appendChild(tagBtn);
-    tagBtn.appendChild(text);
+    // we can pass "fake" labels and decide here if they should have a link
+    if (tagData.startPos) {
+        const tagBtn = document.createElement("button");
+        addLabelListener(tagBtn, tagData);
+        placeTagLabel.appendChild(tagBtn);
+        tagBtn.appendChild(text);
+    } else {
+        placeTagLabel.appendChild(text);
+    }
     placeTagLabel.className = "placeTagLabel";
     return placeTagLabel;
 }
@@ -83,7 +88,11 @@ function addLabelListener(placeTagBtn, tagData) {
         rangeIndices: tagData.rangeIndices
     };
     placeTagBtn.addEventListener('click', () => {
-        port.postMessage({ type: "viewTag", treeRef });
+        port.postMessage({ 
+            type: "viewTag", 
+            treeRef, 
+            name: tagData.name
+        });
     });
 }
 
@@ -94,11 +103,8 @@ function savePlaceTag(name, treeRef) {
         endPos: treeRef.endPos,
         rangeIndices: treeRef.rangeIndices
     };
-    if (pageData) {
-        pageData.push(storageObj);
-    } else {
-        pageData = [storageObj];
-    }
+    pageData.push(storageObj);
+   
     chrome.storage.sync.set({ [url]: pageData }, () => {
         placeTagList.appendChild(newPlaceTagLabel(storageObj));
     });
@@ -158,9 +164,11 @@ function listenForPortResponse() {
         submitBtn.disabled = true;
     } else {
         url = getStrippedURL(tab.url);
-        pageData = await getStorage(url);
+        // const allData = await getAllStorage();
+        // console.log(allData);
+        pageData = await getStorage(url) ?? [];
         // console.log(url);
-        // console.log(urlData);
+        // console.log(pageData);
         loadPlaceTags();
         warning.style.visibility = "hidden"; // hide the default warning
         port = chrome.tabs.connect(tab.id); // initialise port connection

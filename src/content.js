@@ -1,5 +1,5 @@
 // globals
-let oldId;
+const lastTag = {};
 
 
 function generateId() {
@@ -96,16 +96,20 @@ function tagFromSelection(selection) {
 }
 
 function removeOldTag() {
-  if (oldId) {
-      let oldSpan = document.getElementById(oldId);
+  if (lastTag.id) {
+      let oldSpan = document.getElementById(lastTag.id);
       oldSpan.outerHTML = oldSpan.innerHTML;
       // when the old and new span overlap, a new tag is created at the intersection and so
       // the span lives on parasitically. By checking twice, we eliminate this case.
-      oldSpan = document.getElementById(oldId);
+      oldSpan = document.getElementById(lastTag.id);
       if (oldSpan) {
           oldSpan.outerHTML = oldSpan.innerHTML;
       }
   }
+}
+
+function scrollTo(span) {
+  span.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
 }
 
 function createTag(range) {
@@ -122,8 +126,8 @@ function createTag(range) {
   // (not good!) Get the span again to change it's mind
   span = document.getElementById(id);
 
-  span.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-  oldId = id;
+  scrollTo(span);
+  lastTag.id = id;
 }
 
 function nodeFromPosArr(posArr) {
@@ -150,7 +154,6 @@ function nodeFromPosArr(posArr) {
 }
 
 function tagFromTreeRef(treeRef) {
-  removeOldTag();
   const startNode = nodeFromPosArr(treeRef['startPos']);
   const endNode = nodeFromPosArr(treeRef['endPos']);
   const rangeVals = treeRef['rangeIndices'];
@@ -170,6 +173,7 @@ chrome.runtime.onConnect.addListener(port => {
           // console.log(treeRef);
           // const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
           // console.log(size);
+          lastTag.name = msg.name;
           port.postMessage({
             type: "addRes",
             success: true,
@@ -185,10 +189,17 @@ chrome.runtime.onConnect.addListener(port => {
         }
         break;
       case "viewTag":
-        const treeRef = msg.treeRef;
-        console.log(treeRef);
-        tagFromTreeRef(treeRef);
-        break;
+        console.log(msg.name);
+        if (msg.name === lastTag.name) {
+          const tag = document.getElementById(lastTag.id);
+          scrollTo(tag);
+        } else {
+          const treeRef = msg.treeRef;
+          console.log(treeRef);
+          tagFromTreeRef(treeRef);
+          lastTag.name = msg.name;
+          break;
+        }
     }
   });
 });
