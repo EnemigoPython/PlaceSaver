@@ -192,6 +192,13 @@ chrome.runtime.onConnect.addListener(port => {
         console.log(msg.name);
         if (msg.name === lastTag.name) {
           const tag = document.getElementById(lastTag.id);
+          if (!tag) {
+            port.postMessage({
+              type: "viewError",
+              text: "The tag is not present on the page."
+            });
+            break;
+          }
           scrollTo(tag);
         } else {
           const treeRef = msg.treeRef;

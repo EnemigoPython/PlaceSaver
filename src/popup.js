@@ -154,12 +154,8 @@ function listenForPortResponse() {
                     showWarning(msg.text);
                 }
                 break;
-            case "viewRes":
-                if (msg.success) {
-                    // TODO: button changes colour for focus (can request this info from content on reload)
-                } else {
-                    showWarning(msg.text);
-                }
+            case "viewError":
+                showWarning(msg.text);
                 break;
         }
     });
