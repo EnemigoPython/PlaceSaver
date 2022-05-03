@@ -1,6 +1,5 @@
 //// globals ////
-const lastTag = {}; // 
-let portMessage;
+const lastTag = {}; // properties of last referenced tag
 
 
 function generateId() {
@@ -200,6 +199,10 @@ chrome.runtime.onConnect.addListener(port => {
           tagFromTreeRef(treeRef);
           lastTag.name = msg.name;
         }
+        break;
+      case "clearTag":
+        removeOldTag();
+        Object.keys(lastTag).forEach(key => delete lastTag[key]);
         break;
     }
   });

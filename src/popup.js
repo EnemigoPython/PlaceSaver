@@ -5,6 +5,7 @@ let pageData; // place tag data for current url, loaded from storage
 
 //// HTML Elements ////
 const btn = document.getElementById('hello');
+const clear = document.getElementById('clearBtn');
 const input = document.getElementById('tagInput');
 const submitBtn = document.getElementById('submitBtn');
 const placeTagList = document.getElementById('placeTagList');
@@ -136,6 +137,12 @@ function listenForSubmit() {
     });
 }
 
+function listenForClear() {
+    clearBtn.addEventListener('click', () => {
+        port.postMessage({type: "clearTag"});
+    })
+}
+
 function listenForPortResponse() {
     port.onMessage.addListener(msg => {
         switch (msg.type) {
@@ -174,6 +181,7 @@ function listenForPortResponse() {
         warning.style.visibility = "hidden"; // hide the default warning
         port = chrome.tabs.connect(tab.id); // initialise port connection
         listenForSubmit(); // we only want to do this if the content script can be reached
+        listenForClear();
         listenForPortResponse();
     }
 })();
