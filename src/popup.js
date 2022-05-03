@@ -1,7 +1,7 @@
 //// globals ////
 let port; // message port to content script
 let url;
-let pageData // place tags for current url, loaded from storage
+let pageData; // place tag data for current url, loaded from storage
 
 //// HTML Elements ////
 const btn = document.getElementById('hello');
@@ -68,7 +68,7 @@ function loadPlaceTags() {
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("li");
     const text = document.createTextNode(tagData.name);
-    // we can pass "fake" labels and decide here if they should have a link
+    // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
         const tagBtn = document.createElement("button");
         addLabelListener(tagBtn, tagData);
@@ -148,6 +148,11 @@ function listenForPortResponse() {
                 }
                 break;
             case "viewRes":
+                if (msg.success) {
+                    // TODO: button changes colour for focus (can request this info from content on reload)
+                } else {
+                    showWarning(msg.text);
+                }
                 break;
         }
     });
@@ -164,11 +169,7 @@ function listenForPortResponse() {
         submitBtn.disabled = true;
     } else {
         url = getStrippedURL(tab.url);
-        // const allData = await getAllStorage();
-        // console.log(allData);
         pageData = await getStorage(url) ?? [];
-        // console.log(url);
-        // console.log(pageData);
         loadPlaceTags();
         warning.style.visibility = "hidden"; // hide the default warning
         port = chrome.tabs.connect(tab.id); // initialise port connection
