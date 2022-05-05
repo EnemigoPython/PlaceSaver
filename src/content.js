@@ -1,5 +1,6 @@
 //// globals ////
 const lastTag = {}; // properties of last referenced tag
+let portMessage; // to avoid nesting return values for a synchronous response on port
 
 
 function generateId() {
@@ -132,30 +133,51 @@ function createTag(range) {
 
 function nodeFromPosArr(posArr) {
   let node;
-    // if the first element is a string, it's an ID
-    if (typeof posArr[0] === 'string') {
-        node = document.getElementById(posArr[0]);
-    } else {
-        node = document.body.firstChild;
-        // we start the walk at the second element, so insert an element at pos 0
-        posArr.unshift('BODY');
-    }
-    posArr.slice(1).forEach((sibling, idx) => {
-        for (let i = 0; i < sibling; i++) {
-            node = node.nextSibling;
+  // if the first element is a string, it's an ID
+  if (typeof posArr[0] === 'string') {
+      node = document.getElementById(posArr[0]);
+      if (!node) {
+        portMessage = {
+          type: "viewRes",
+          text: "Root node does not exist."
         }
-        // until we reach the last element, we want to keep zooming in
-        if (idx + 2 < posArr.length) {
-            node = node.firstChild;
-        }
-    });
-
-    return node;
+        return;
+      }
+  } else {
+      node = document.body.firstChild;
+      // we start the walk at the second element, so insert an element at pos 0
+      posArr.unshift('BODY');
+  }
+  posArr.slice(1).forEach((sibling, idx) => {
+      for (let i = 0; i < sibling; i++) {
+          node = node.nextSibling;
+          if (!node) {
+            portMessage = {
+              type: "viewRes",
+              text: "Document structure has changed."
+            }
+            return;
+          }
+      }
+      // until we reach the last element, we want to keep zooming in
+      if (idx + 2 < posArr.length) {
+          node = node.firstChild;
+          if (!node) {
+            portMessage = {
+              type: "viewRes",
+              text: "Document structure has changed."
+            }
+            return;
+          }
+      }
+  });
+  return node;
 }
 
 function tagFromTreeRef(treeRef) {
   const startNode = nodeFromPosArr(treeRef['startPos']);
   const endNode = nodeFromPosArr(treeRef['endPos']);
+  if (!startNode || !endNode) return;
   const rangeVals = treeRef['rangeIndices'];
   const range = document.createRange();
   range.setStart(startNode, rangeVals[0]);
@@ -189,12 +211,12 @@ chrome.runtime.onConnect.addListener(port => {
         }
         break;
       case "viewTag":
-        console.log(msg.name);
+        // console.log(msg.name);
         if (msg.name === lastTag.name) {
           const tag = document.getElementById(lastTag.id);
           if (!tag) {
             port.postMessage({
-              type: "viewError",
+              type: "viewRes",
               text: "The tag is not present on the page."
             });
             break;
@@ -202,9 +224,18 @@ chrome.runtime.onConnect.addListener(port => {
           scrollTo(tag);
         } else {
           const treeRef = msg.treeRef;
-          console.log(treeRef);
+          // console.log(treeRef);
           tagFromTreeRef(treeRef);
-          lastTag.name = msg.name;
+          if (portMessage) {
+            port.postMessage({...portMessage, success: false});
+            portMessage = null;
+          } else {
+            lastTag.name = msg.name;
+            port.postMessage({
+              type: "viewRes",
+              success: true,
+            });
+          }
         }
         break;
       case "clearTag":

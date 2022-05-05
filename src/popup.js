@@ -154,8 +154,13 @@ function listenForPortResponse() {
                     showWarning(msg.text);
                 }
                 break;
-            case "viewError":
-                showWarning(msg.text);
+            case "viewRes":
+                console.log(msg);
+                if (msg.success) {
+                    warning.style.visibility = 'hidden';
+                } else {
+                    showWarning(msg.text);
+                }
                 break;
         }
     });
