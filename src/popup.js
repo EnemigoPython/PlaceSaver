@@ -72,8 +72,12 @@ function newPlaceTagLabel(tagData) {
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
         const tagBtn = document.createElement("button");
-        addLabelListener(tagBtn, tagData);
+        const clickHandler = addLabelListener(tagBtn, tagData);
         placeTagLabel.appendChild(tagBtn);
+        const deleteBtn = document.createElement("button");
+        addDeleteListener(deleteBtn, clickHandler, tagData);
+        placeTagLabel.appendChild(deleteBtn);
+        deleteBtn.innerText = 'Delete'
         tagBtn.appendChild(text);
     } else {
         placeTagLabel.appendChild(text);
@@ -88,13 +92,18 @@ function addLabelListener(placeTagBtn, tagData) {
         endPos: tagData.endPos,
         rangeIndices: tagData.rangeIndices
     };
-    placeTagBtn.addEventListener('click', () => {
+    const clickHandler = placeTagBtn.addEventListener('click', () => {
         port.postMessage({ 
             type: "viewTag", 
             treeRef, 
             name: tagData.name
         });
     });
+    return clickHandler;
+}
+
+function addDeleteListener(deleteBtn, clickHandler, tagData) {
+
 }
 
 function savePlaceTag(name, treeRef) {
