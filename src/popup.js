@@ -72,10 +72,10 @@ function newPlaceTagLabel(tagData) {
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
         const tagBtn = document.createElement("button");
-        const clickHandler = addLabelListener(tagBtn, tagData);
+        addLabelListener(tagBtn, tagData);
         placeTagLabel.appendChild(tagBtn);
         const deleteBtn = document.createElement("button");
-        addDeleteListener(deleteBtn, clickHandler, tagData);
+        addDeleteListener(deleteBtn, placeTagLabel, tagData);
         placeTagLabel.appendChild(deleteBtn);
         deleteBtn.innerText = 'Delete'
         tagBtn.appendChild(text);
@@ -92,18 +92,22 @@ function addLabelListener(placeTagBtn, tagData) {
         endPos: tagData.endPos,
         rangeIndices: tagData.rangeIndices
     };
-    const clickHandler = placeTagBtn.addEventListener('click', () => {
+    placeTagBtn.addEventListener('click', () => {
         port.postMessage({ 
             type: "viewTag", 
             treeRef, 
             name: tagData.name
         });
     });
-    return clickHandler;
 }
 
-function addDeleteListener(deleteBtn, clickHandler, tagData) {
-
+function addDeleteListener(deleteBtn, placeTagLabel, tagData) {
+    deleteBtn.addEventListener('click', () => {
+        pageData = pageData.filter(tag => tag.name !== tagData.name);
+        chrome.storage.sync.set({ [url]: pageData }, () => {
+            placeTagLabel.remove();
+        });
+    })
 }
 
 function savePlaceTag(name, treeRef) {
