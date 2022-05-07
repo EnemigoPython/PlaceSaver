@@ -9,3 +9,17 @@ body {
 #warning {
   color: red;
 }
+
+#placeTagList {
+  list-style: none;
+}
+
+.placeTagLabel {
+  display: flex;
+  justify-content: space-around;
+}
+
+.tagBtn {
+  all: unset;
+  cursor: pointer;
+}

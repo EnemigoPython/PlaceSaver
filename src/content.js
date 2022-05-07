@@ -1,6 +1,6 @@
 //// globals ////
 const lastTag = {}; // properties of last referenced tag
-let portMessage; // to avoid nesting return values for a synchronous response on port
+let portMessage; // to avoid chaining return values for a synchronous response on port
 
 
 function generateId() {

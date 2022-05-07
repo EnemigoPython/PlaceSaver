@@ -75,6 +75,7 @@ function newPlaceTagLabel(tagData) {
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
         const tagBtn = document.createElement("button");
+        tagBtn.className = 'tagBtn';
         addLabelListener(tagBtn, tagData);
         placeTagLabel.appendChild(tagBtn);
         const deleteBtn = document.createElement("button");
@@ -182,7 +183,6 @@ function listenForPortResponse() {
                 }
                 break;
             case "viewRes":
-                console.log(msg);
                 if (msg.success) {
                     warning.style.visibility = 'hidden';
                 } else {
