@@ -62,13 +62,16 @@ function loadPlaceTags() {
             placeTagList.appendChild(newPlaceTagLabel(tag));
         });
     } else {
-        placeTagList.appendChild(newPlaceTagLabel({ name: "No Place Tags found." }));
+        placeTagList.appendChild(newPlaceTagLabel({ name: "No Place Tags found.", id: "noTags" }));
     }
 }
 
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("li");
     const text = document.createTextNode(tagData.name);
+    placeTagLabel.className = "placeTagLabel";
+    placeTagLabel.id = tagData.id ?? '';
+
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
         const tagBtn = document.createElement("button");
@@ -82,7 +85,6 @@ function newPlaceTagLabel(tagData) {
     } else {
         placeTagLabel.appendChild(text);
     }
-    placeTagLabel.className = "placeTagLabel";
     return placeTagLabel;
 }
 
@@ -104,10 +106,16 @@ function addLabelListener(placeTagBtn, tagData) {
 function addDeleteListener(deleteBtn, placeTagLabel, tagData) {
     deleteBtn.addEventListener('click', () => {
         pageData = pageData.filter(tag => tag.name !== tagData.name);
-        chrome.storage.sync.set({ [url]: pageData }, () => {
-            placeTagLabel.remove();
-        });
-    })
+        if (pageData.length) {
+            chrome.storage.sync.set({ [url]: pageData }, () => {
+                placeTagLabel.remove();
+            });
+        } else {
+            chrome.storage.sync.remove(url, () => {
+                placeTagLabel.remove();
+            });
+        }
+    });
 }
 
 function savePlaceTag(name, treeRef) {
@@ -118,6 +126,12 @@ function savePlaceTag(name, treeRef) {
         rangeIndices: treeRef.rangeIndices
     };
     pageData.push(storageObj);
+
+    // check for 'No Place Tags found' & remove if found
+    const noTags = document.getElementById('noTags');
+    if (noTags) {
+        noTags.remove();
+    }
    
     chrome.storage.sync.set({ [url]: pageData }, () => {
         placeTagList.appendChild(newPlaceTagLabel(storageObj));
