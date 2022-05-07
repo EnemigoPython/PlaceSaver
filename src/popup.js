@@ -81,7 +81,7 @@ function newPlaceTagLabel(tagData) {
         const deleteBtn = document.createElement("button");
         addDeleteListener(deleteBtn, placeTagLabel, tagData);
         placeTagLabel.appendChild(deleteBtn);
-        deleteBtn.innerText = 'Delete'
+        deleteBtn.innerText = 'Delete';
         tagBtn.appendChild(text);
     } else {
         placeTagLabel.appendChild(text);
