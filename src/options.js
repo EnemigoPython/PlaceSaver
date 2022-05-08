@@ -1,4 +1,8 @@
+//// HTML elements ////
 const url_select = document.getElementById('url-selector');
+const saveBtn = document.getElementById('saveBtn');
+const resetBtn = document.getElementById('resetBtn')
+const clearBtn = document.getElementById('clearBtn');
 
 async function getAllStorage() {
     return new Promise ((resolve, reject) => {
@@ -25,12 +29,19 @@ function openNewTab() {
     });
 }
 
-(async () => {
-    const storage = Object.keys(await getAllStorage())
-        .filter(key => key !== 'style');
-    storage.forEach(item => {
-        createSelectValue(item);
+function listenForButtons() {
+    clearBtn.addEventListener('click', () => {
+        chrome.storage.sync.clear();
     });
+}
+
+(async () => {
+    const storage = await getAllStorage();
+    const style = storage.style;
+    const savedUrls = Object.keys(storage)
+        .filter(key => key !== 'style');
+    savedUrls.forEach(item => createSelectValue(item));
 
     url_select.onchange = openNewTab;
+    listenForButtons();
 })();
