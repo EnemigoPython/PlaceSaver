@@ -2,7 +2,7 @@
 const lastTag = {}; // properties of last referenced tag
 let portMessage; // to avoid chaining return values for a synchronous response on port
 let highlightStyle;
-chrome.storage.sync.get("style", (value) => highlightStyle = value.style); // async load of stored styles
+chrome.storage.sync.get("style", value => highlightStyle = value.style); // async load of stored styles
 
 
 function generateId() {

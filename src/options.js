@@ -10,6 +10,7 @@ const colourPicker = document.getElementById('colourPicker');
 const displayHighlight = document.getElementById('displayHighlight');
 const displayAltTitle = document.getElementById('displayAltTitle');
 const urlSelect = document.getElementById('urlSelect');
+const storageSpan = document.getElementById('storageSpan');
 const saveBtn = document.getElementById('saveBtn');
 const resetBtn = document.getElementById('resetBtn')
 const clearBtn = document.getElementById('clearBtn');
@@ -26,6 +27,24 @@ async function getAllStorage() {
             resolve(valueObj);
         });
     });
+}
+
+async function getBytesInUse() {
+    return new Promise ((resolve, reject) => {
+        chrome.storage.sync.getBytesInUse(null, (number) => {
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            resolve(number);
+        });
+    });
+}
+
+async function setStorageSpan() {
+    const kilobytesInUse = await getBytesInUse() / 1000;
+    const maxKilobytes = chrome.storage.sync.QUOTA_BYTES / 1000;
+    const percent = `${((kilobytesInUse / maxKilobytes) * 100).toFixed(2)}%`
+    storageSpan.innerText = `Storage used: ${kilobytesInUse}/${maxKilobytes} KB (${percent})`;
 }
 
 function setFormValues(style) {
@@ -90,4 +109,5 @@ function listenForButtons() {
 
     urlSelect.onchange = openNewTab;
     listenForButtons();
+    setStorageSpan();
 })();
