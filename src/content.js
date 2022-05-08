@@ -1,20 +1,9 @@
 //// globals ////
 const lastTag = {}; // properties of last referenced tag
 let portMessage; // to avoid chaining return values for a synchronous response on port
-let highlightStyle; // loaded style properties from storage
+let highlightStyle;
+chrome.storage.sync.get("style", (value) => highlightStyle = value.style); // async load of stored styles
 
-
-async function getHighlightedStyle() {
-  return new Promise ((resolve, reject) => {
-      chrome.storage.sync.get('style', (valueObj) => {
-          if (chrome.runtime.lastError) {
-              return reject(chrome.runtime.lastError);
-          }
-          // return the style object
-          resolve(valueObj.style);
-      });
-  });
-}
 
 function generateId() {
   let id = ''
@@ -261,7 +250,3 @@ chrome.runtime.onConnect.addListener(port => {
     }
   });
 });
-
-(async () => {
-  highlightStyle = await getHighlightedStyle();
-})();
