@@ -13,6 +13,7 @@ const urlSelect = document.getElementById('urlSelect');
 const saveBtn = document.getElementById('saveBtn');
 const resetBtn = document.getElementById('resetBtn')
 const clearBtn = document.getElementById('clearBtn');
+const confirmText = document.getElementById('confirmText');
 
 
 async function getAllStorage() {
@@ -34,7 +35,9 @@ function setFormValues(style) {
 }
 
 function showConfirmation(text) {
-
+    confirmText.innerText = text;
+    confirmText.style.opacity = 1;
+    console.log('hi');
 }
 
 function createSelectValue(value) {
@@ -51,21 +54,30 @@ function openNewTab() {
 }
 
 function listenForButtons() {
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', (e) => {
         const newStyle = {
             highlight: colourPicker.value,
             visible: displayHighlight.checked,
             altTitle: displayAltTitle.checked
         };
-        chrome.storage.sync.set({ style: newStyle }, () => {
-            showConfirmation("");
-        });
+        if (newStyle != defaultStyle) {
+            chrome.storage.sync.set({ style: newStyle }, () => {
+                showConfirmation("Options saved.");
+            });
+        }
+        e.preventDefault();
     });
-    clearBtn.addEventListener('click', () => {
+    clearBtn.addEventListener('click', (e) => {
         chrome.storage.sync.clear();
+        showConfirmation("Data cleared.");
+        e.preventDefault();
     });
-    resetBtn.addEventListener('click', () => {
-        chrome.storage.sync.set({ style: defaultStyle });
+    resetBtn.addEventListener('click', (e) => {
+        chrome.storage.sync.set({ style: defaultStyle }, () => {
+            showConfirmation("Options restored to default.");
+            setFormValues(defaultStyle);
+        });
+        e.preventDefault();
     });
 }
 
