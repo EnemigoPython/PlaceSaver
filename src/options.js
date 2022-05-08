@@ -1,6 +1,6 @@
 //// globals ////
 const defaultStyle = {
-    highlight: "#FFFF00",
+    highlight: "#ffff00",
     altTitle: false,
     visible: true
 } 
@@ -56,7 +56,6 @@ function setFormValues(style) {
 function showConfirmation(text) {
     confirmText.innerText = text;
     confirmText.style.opacity = 1;
-    console.log('hi');
 }
 
 function createSelectValue(value) {
@@ -72,6 +71,10 @@ function openNewTab() {
     });
 }
 
+function objectsAreEqual(object1, object2) {
+    return Object.keys(object1).every(key => object1[key] === object2[key]);
+}
+
 function listenForButtons() {
     saveBtn.addEventListener('click', (e) => {
         const newStyle = {
@@ -79,7 +82,7 @@ function listenForButtons() {
             visible: displayHighlight.checked,
             altTitle: displayAltTitle.checked
         };
-        if (newStyle != defaultStyle) {
+        if (!objectsAreEqual(newStyle, defaultStyle)) {
             chrome.storage.sync.set({ style: newStyle }, () => {
                 showConfirmation("Options saved.");
             });
