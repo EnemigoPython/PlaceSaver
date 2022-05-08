@@ -72,7 +72,7 @@ function getTreeRef(rangeRef) {
   };
 }
 
-function tagFromSelection(selection) {
+function tagFromSelection(selection, name) {
   // a span can't wrap multiple lines, so we need to find the first newline to set
   // the selection extent to.
   const spanFragments = selection.toString().split(/\n|\s{2}/);
@@ -102,7 +102,7 @@ function tagFromSelection(selection) {
   }
   const treeRef = getTreeRef(rangeRef);
 
-  createTag(range);
+  createTag(range, name);
   selection.removeAllRanges();
 
   // returns the treeRef for the storage object
@@ -126,12 +126,16 @@ function scrollTo(span) {
   span.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
 }
 
-function createTag(range) {
+function createTag(range, name) {
   let span = document.createElement("span");
   const id = generateId();
   span.setAttribute("id", id);
-  span.style.backgroundColor = highlightStyle.highlight;
-  // span.setAttribute("class", "placeTagHighlight");
+  if (highlightStyle.visible) {
+    span.style.backgroundColor = highlightStyle.highlight;
+  }
+  if (highlightStyle.altTitle) {
+    span.title = name;
+  }
   span.appendChild(range.extractContents());
 
   range.insertNode(span);
@@ -188,7 +192,7 @@ function nodeFromPosArr(posArr) {
   return node;
 }
 
-function tagFromTreeRef(treeRef) {
+function tagFromTreeRef(treeRef, name) {
   const startNode = nodeFromPosArr(treeRef['startPos']);
   const endNode = nodeFromPosArr(treeRef['endPos']);
   if (!startNode || !endNode) return;
@@ -196,7 +200,7 @@ function tagFromTreeRef(treeRef) {
   const range = document.createRange();
   range.setStart(startNode, rangeVals[0]);
   range.setEnd(endNode, rangeVals[1]);
-  createTag(range);
+  createTag(range, name);
 }
 
 chrome.runtime.onConnect.addListener(port => {
@@ -205,7 +209,7 @@ chrome.runtime.onConnect.addListener(port => {
       case "addTag":
         const currentSelection = window.getSelection();
         if (currentSelection.toString()) {
-          const treeRef = tagFromSelection(currentSelection);
+          const treeRef = tagFromSelection(currentSelection, msg.name);
           // console.log(treeRef);
           // const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
           // console.log(size);
@@ -225,7 +229,6 @@ chrome.runtime.onConnect.addListener(port => {
         }
         break;
       case "viewTag":
-        // console.log(msg.name);
         if (msg.name === lastTag.name) {
           const tag = document.getElementById(lastTag.id);
           if (!tag) {
@@ -238,8 +241,7 @@ chrome.runtime.onConnect.addListener(port => {
           scrollTo(tag);
         } else {
           const treeRef = msg.treeRef;
-          // console.log(treeRef);
-          tagFromTreeRef(treeRef);
+          tagFromTreeRef(treeRef, msg.name);
           if (portMessage) {
             port.postMessage({...portMessage, success: false});
             portMessage = null;
