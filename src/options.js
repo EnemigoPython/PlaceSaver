@@ -1,4 +1,14 @@
+//// globals ////
+const defaultStyle = {
+    highlight: "#FFFF00",
+    altTitle: false,
+    visible: true
+} 
+
 //// HTML elements ////
+const colourPicker = document.getElementById('colourPicker');
+const displayHighlight = document.getElementById('displayHighlight');
+const displayAltTitle = document.getElementById('displayAltTitle');
 const url_select = document.getElementById('url-selector');
 const saveBtn = document.getElementById('saveBtn');
 const resetBtn = document.getElementById('resetBtn')
@@ -16,6 +26,12 @@ async function getAllStorage() {
     });
 }
 
+function setFormValues(style) {
+    colourPicker.value = style.highlight;
+    displayHighlight.value = style.value;
+    displayAltTitle.value = style.value;
+}
+
 function createSelectValue(value) {
     const option = document.createElement('option');
     option.innerText = value;
@@ -30,14 +46,20 @@ function openNewTab() {
 }
 
 function listenForButtons() {
+    submitBtn.addEventListener('click', () => {
+
+    });
     clearBtn.addEventListener('click', () => {
         chrome.storage.sync.clear();
+    });
+    resetBtn.addEventListener('click', () => {
+        chrome.storage.sync.set({ style: defaultStyle });
     });
 }
 
 (async () => {
     const storage = await getAllStorage();
-    const style = storage.style;
+    setFormValues(storage.style);
     const savedUrls = Object.keys(storage)
         .filter(key => key !== 'style');
     savedUrls.forEach(item => createSelectValue(item));
