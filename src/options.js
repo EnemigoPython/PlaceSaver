@@ -9,10 +9,11 @@ const defaultStyle = {
 const colourPicker = document.getElementById('colourPicker');
 const displayHighlight = document.getElementById('displayHighlight');
 const displayAltTitle = document.getElementById('displayAltTitle');
-const url_select = document.getElementById('url-selector');
+const urlSelect = document.getElementById('urlSelect');
 const saveBtn = document.getElementById('saveBtn');
 const resetBtn = document.getElementById('resetBtn')
 const clearBtn = document.getElementById('clearBtn');
+
 
 async function getAllStorage() {
     return new Promise ((resolve, reject) => {
@@ -28,26 +29,37 @@ async function getAllStorage() {
 
 function setFormValues(style) {
     colourPicker.value = style.highlight;
-    displayHighlight.value = style.value;
-    displayAltTitle.value = style.value;
+    displayHighlight.checked = style.visible;
+    displayAltTitle.checked = style.altTitle;
+}
+
+function showConfirmation(text) {
+
 }
 
 function createSelectValue(value) {
     const option = document.createElement('option');
     option.innerText = value;
     option.value = value;
-    url_select.appendChild(option);
+    urlSelect.appendChild(option);
 }
 
 function openNewTab() {
     chrome.tabs.create({
-        url: url_select.value
+        url: urlSelect.value
     });
 }
 
 function listenForButtons() {
-    submitBtn.addEventListener('click', () => {
-
+    saveBtn.addEventListener('click', () => {
+        const newStyle = {
+            highlight: colourPicker.value,
+            visible: displayHighlight.checked,
+            altTitle: displayAltTitle.checked
+        };
+        chrome.storage.sync.set({ style: newStyle }, () => {
+            showConfirmation("");
+        });
     });
     clearBtn.addEventListener('click', () => {
         chrome.storage.sync.clear();
@@ -64,6 +76,6 @@ function listenForButtons() {
         .filter(key => key !== 'style');
     savedUrls.forEach(item => createSelectValue(item));
 
-    url_select.onchange = openNewTab;
+    urlSelect.onchange = openNewTab;
     listenForButtons();
 })();

@@ -130,7 +130,8 @@ function createTag(range) {
   let span = document.createElement("span");
   const id = generateId();
   span.setAttribute("id", id);
-  span.setAttribute("class", "placeTagHighlight");
+  span.style.backgroundColor = highlightStyle.highlight;
+  // span.setAttribute("class", "placeTagHighlight");
   span.appendChild(range.extractContents());
 
   range.insertNode(span);
