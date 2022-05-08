@@ -7,19 +7,18 @@
       "tabs",
       "storage"
     ],
-    "content_scripts": [
-      {
+    "content_scripts": [{
         "matches": [
             "http://*/*",
             "https://*/*"
           ],
         "js": ["/src/content.js"],
         "css": ["/src/content.css"]
-      }
-    ],
+    }],
     "background": {
       "service_worker": "background.js"
     },
+    "options_page": "/src/options.html",
     "action": {
       "default_popup": "/src/popup.html",
       "default_icon": {
