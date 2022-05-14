@@ -30,6 +30,8 @@ function getTreeRef(rangeRef) {
       }
 
       let previousSibling = node.previousSibling;
+      // we can see the next node will be a tag we placed, so we need to absorb the next
+      // two text lengths into our range ref as if this span didn't exist 
       if (previousSibling && previousSibling.className === 'placeTagHighlight') {
               rangeRef.rangeIndices[rangeIdx] += previousSibling.textContent.length;
               previousSibling = previousSibling.previousSibling;
