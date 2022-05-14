@@ -87,16 +87,16 @@ function loadPlaceTags() {
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("div");
     const text = document.createTextNode(tagData.name);
-    const textSpan = document.createElement("button");
-    textSpan.appendChild(text);
-    textSpan.className = "textSpan"
-    placeTagLabel.appendChild(textSpan);
+    const viewBtn = document.createElement("button");
+    viewBtn.appendChild(text);
+    viewBtn.className = "textSpan"
+    placeTagLabel.appendChild(viewBtn);
     placeTagLabel.className = "placeTagLabel";
     placeTagLabel.id = tagData.id ?? '';
 
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
-        addLabelListener(textSpan, tagData);
+        addLabelListener(viewBtn, tagData);
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "deleteBtn";
         deleteBtn.title = "Delete Tag"
