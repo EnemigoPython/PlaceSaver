@@ -4,8 +4,8 @@ let url;
 let pageData; // place tag data for current url, loaded from storage
 
 //// HTML Elements ////
-const btn = document.getElementById('hello');
-const clear = document.getElementById('clearBtn');
+const clearBtn = document.getElementById('clearBtn');
+const optionsBtn = document.getElementById('optionsBtn');
 const input = document.getElementById('tagInput');
 const submitBtn = document.getElementById('submitBtn');
 const placeTagList = document.getElementById('placeTagList');
@@ -78,13 +78,14 @@ function newPlaceTagLabel(tagData) {
 
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
-        addLabelListener(placeTagLabel, tagData);
+        addLabelListener(textSpan, tagData);
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "deleteBtn";
         deleteBtn.title = "Delete Tag"
-        // deleteBtn.innerText = "Delete"
         addDeleteListener(deleteBtn, placeTagLabel, tagData);
         placeTagLabel.appendChild(deleteBtn);
+    } else {
+        placeTagLabel.style.cursor = 'inherit';
     }
     return placeTagLabel;
 }
@@ -171,6 +172,12 @@ function listenForClear() {
     })
 }
 
+function listenForOptions() {
+    optionsBtn.addEventListener('click', () => {
+        chrome.runtime.openOptionsPage();
+    });
+}
+
 function listenForPortResponse() {
     port.onMessage.addListener(msg => {
         switch (msg.type) {
@@ -210,6 +217,7 @@ function listenForPortResponse() {
         port = chrome.tabs.connect(tab.id); // initialise port connection
         listenForSubmit(); // we only want to do this if the content script can be reached
         listenForClear();
+        listenForOptions();
         listenForPortResponse();
     }
 })();
