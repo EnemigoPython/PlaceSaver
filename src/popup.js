@@ -36,11 +36,11 @@ async function getBytesInUse() {
     });
 }
 
-function checkSpace(treeRef) {
+async function checkSpace(treeRef) {
     const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
     const bytes = await getBytesInUse();
     const maxBytes = chrome.storage.sync.QUOTA_BYTES;
-    return size + bytes < maxBytes;
+    return size + bytes + 400 < maxBytes;
 }
 
 function getStrippedURL(tabUrl) {
@@ -197,12 +197,13 @@ function listenForOptions() {
 }
 
 function listenForPortResponse() {
-    port.onMessage.addListener(msg => {
+    port.onMessage.addListener(async (msg) => {
         switch (msg.type) {
             case "addRes":
                 if (msg.success) {
                     const treeRef = msg.treeRef;
-                    if (checkSpace(treeRef)) {
+                    const spaceLeft = await checkSpace(treeRef);
+                    if (spaceLeft) {
                         savePlaceTag(msg.name, treeRef);
                     } else {
                         showWarning("Maximum space exceeded - delete some tags.");
