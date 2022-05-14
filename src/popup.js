@@ -89,7 +89,7 @@ function newPlaceTagLabel(tagData) {
     const text = document.createTextNode(tagData.name);
     const viewBtn = document.createElement("button");
     viewBtn.appendChild(text);
-    viewBtn.className = "textSpan"
+    viewBtn.className = "viewBtn"
     placeTagLabel.appendChild(viewBtn);
     placeTagLabel.className = "placeTagLabel";
     placeTagLabel.id = tagData.id ?? '';
