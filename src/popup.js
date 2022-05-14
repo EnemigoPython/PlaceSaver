@@ -67,35 +67,35 @@ function loadPlaceTags() {
 }
 
 function newPlaceTagLabel(tagData) {
-    const placeTagLabel = document.createElement("li");
+    const placeTagLabel = document.createElement("div");
     const text = document.createTextNode(tagData.name);
+    const textSpan = document.createElement("span");
+    textSpan.appendChild(text);
+    textSpan.className = "textSpan"
+    placeTagLabel.appendChild(textSpan);
     placeTagLabel.className = "placeTagLabel";
     placeTagLabel.id = tagData.id ?? '';
 
     // we can pass "fake" labels and decide here if they should have functionality
     if (tagData.startPos) {
-        const tagBtn = document.createElement("button");
-        tagBtn.className = 'tagBtn';
-        addLabelListener(tagBtn, tagData);
-        placeTagLabel.appendChild(tagBtn);
+        addLabelListener(placeTagLabel, tagData);
         const deleteBtn = document.createElement("button");
+        deleteBtn.className = "deleteBtn";
+        deleteBtn.title = "Delete Tag"
+        // deleteBtn.innerText = "Delete"
         addDeleteListener(deleteBtn, placeTagLabel, tagData);
         placeTagLabel.appendChild(deleteBtn);
-        deleteBtn.innerText = 'Delete';
-        tagBtn.appendChild(text);
-    } else {
-        placeTagLabel.appendChild(text);
     }
     return placeTagLabel;
 }
 
-function addLabelListener(placeTagBtn, tagData) {
+function addLabelListener(placeTagLabel, tagData) {
     const treeRef = { 
         startPos: tagData.startPos,
         endPos: tagData.endPos,
         rangeIndices: tagData.rangeIndices
     };
-    placeTagBtn.addEventListener('click', () => {
+    placeTagLabel.addEventListener('click', () => {
         port.postMessage({ 
             type: "viewTag", 
             treeRef, 
