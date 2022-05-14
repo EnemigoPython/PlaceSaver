@@ -108,6 +108,7 @@ function removeOldTag() {
       if (oldSpan) {
           oldSpan.outerHTML = oldSpan.innerHTML;
       }
+      lastTag.id = null;
   }
 }
 
@@ -119,6 +120,7 @@ function createTag(range, name) {
   let span = document.createElement("span");
   const id = generateId();
   span.setAttribute("id", id);
+  span.setAttribute("class", "placeTagHighlight");
   if (highlightStyle.visible) {
     span.style.backgroundColor = highlightStyle.highlight;
   }
@@ -182,6 +184,7 @@ function nodeFromPosArr(posArr) {
 }
 
 function tagFromTreeRef(treeRef, name) {
+  removeOldTag();
   const startNode = nodeFromPosArr(treeRef['startPos']);
   const endNode = nodeFromPosArr(treeRef['endPos']);
   if (!startNode || !endNode) return;
@@ -199,9 +202,6 @@ chrome.runtime.onConnect.addListener(port => {
         const currentSelection = window.getSelection();
         if (currentSelection.toString()) {
           const treeRef = tagFromSelection(currentSelection, msg.name);
-          // console.log(treeRef);
-          // const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
-          // console.log(size);
           lastTag.name = msg.name;
           port.postMessage({
             type: "addRes",

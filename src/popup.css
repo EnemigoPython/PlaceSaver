@@ -42,6 +42,7 @@ body {
 }
 
 .textSpan {
+  all: unset;
   margin-left: 5%;
   background-color: white;
   flex-grow: 2;

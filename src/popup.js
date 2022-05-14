@@ -87,7 +87,7 @@ function loadPlaceTags() {
 function newPlaceTagLabel(tagData) {
     const placeTagLabel = document.createElement("div");
     const text = document.createTextNode(tagData.name);
-    const textSpan = document.createElement("span");
+    const textSpan = document.createElement("button");
     textSpan.appendChild(text);
     textSpan.className = "textSpan"
     placeTagLabel.appendChild(textSpan);
