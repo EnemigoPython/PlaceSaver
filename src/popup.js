@@ -25,6 +25,24 @@ async function getCurrentTab() {
     });
 }
 
+async function getBytesInUse() {
+    return new Promise ((resolve, reject) => {
+        chrome.storage.sync.getBytesInUse(null, (number) => {
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            resolve(number);
+        });
+    });
+}
+
+function checkSpace(treeRef) {
+    const size = new TextEncoder().encode(JSON.stringify(treeRef)).length;
+    const bytes = await getBytesInUse();
+    const maxBytes = chrome.storage.sync.QUOTA_BYTES;
+    return size + bytes < maxBytes;
+}
+
 function getStrippedURL(tabUrl) {
     strippedUrl = new URL(tabUrl);
     strippedUrl = `${strippedUrl.protocol}//${strippedUrl.host}${strippedUrl.pathname}${strippedUrl.search}`; // strip hash
@@ -184,7 +202,11 @@ function listenForPortResponse() {
             case "addRes":
                 if (msg.success) {
                     const treeRef = msg.treeRef;
-                    savePlaceTag(msg.name, treeRef);
+                    if (checkSpace(treeRef)) {
+                        savePlaceTag(msg.name, treeRef);
+                    } else {
+                        showWarning("Maximum space exceeded - delete some tags.");
+                    }
                 } else {
                     showWarning(msg.text);
                 }
