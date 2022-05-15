@@ -1,4 +1,4 @@
-# Place Saver #
+# Place Saver :books: #
 A Chrome extension to save a place on a webpage.
 
 ## Availability ##
