@@ -1,6 +1,6 @@
 //// global //// 
 const defaultStyle = {
-    highlight: "#FFFF00",
+    highlight: "#ffff00",
     altTitle: false,
     visible: true
 }
