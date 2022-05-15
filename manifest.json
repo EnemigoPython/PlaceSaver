@@ -1,7 +1,7 @@
 {
     "name": "Place Saver",
     "description": "Save a place on a web page",
-    "version": "1.0",
+    "version": "1.0.0",
     "manifest_version": 3,
     "permissions": [
       "tabs",
@@ -12,8 +12,7 @@
             "http://*/*",
             "https://*/*"
           ],
-        "js": ["/src/content.js"],
-        "css": ["/src/content.css"]
+        "js": ["/src/content.js"]
     }],
     "background": {
       "service_worker": "background.js"
