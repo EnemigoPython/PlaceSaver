@@ -156,9 +156,7 @@ function spanFromTreeObj(treeObj) {
 
 function saveRangeRef(rangeVals) {
     const treeObj = getTreeRef(rangeVals);
-    console.log(treeObj);
     const size = new TextEncoder().encode(JSON.stringify(treeObj)).length;
-    console.log(size);
     localStorage.treeObj = JSON.stringify(treeObj);
 }
 
