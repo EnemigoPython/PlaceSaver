@@ -1,8 +1,7 @@
-
+//// globals ////
 const buttonEl = document.getElementById('btn');
 
 let oldId;
-
 
 buttonEl.addEventListener('click', highlightFromSelection);
 
